@@ -359,7 +359,7 @@ export const getVideo = asyncHandler(
     });
 
     const [likes, comments, subscribers, isLiked, isSubscribed] =
-      await Promise.all([
+      await Promise.allSettled([
         likesPromise,
         commentsPromise,
         subscribersPromise,
