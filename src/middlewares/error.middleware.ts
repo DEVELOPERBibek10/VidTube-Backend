@@ -26,7 +26,7 @@ const globalErrorHandler = (
     const hasUniqueViolation = errorValues.some((el) => el.kind === "unique");
     const uniqueErrors = errorValues.filter((e) => e.kind === "unique");
     const uniqueFields = uniqueErrors.map((e) => e.path);
-    statusCode = 400;
+    statusCode = hasUniqueViolation ? 409 : 400;
     code = hasUniqueViolation ? "DUPLICATE_KEY_ERROR" : "VALIDATION_ERROR";
     message = hasUniqueViolation
       ? `Duplicate value for field(s): ${uniqueFields.join(", ")}`
@@ -55,10 +55,7 @@ const globalErrorHandler = (
     statusCode = 400;
     code = "CAST_ERROR";
     message = `Invalid resource identifier: ${err.path}`;
-  } else if (
-    ("type" in err && err.type === "entity.parse.failed") ||
-    err.message.includes("JSON")
-  ) {
+  } else if ("type" in err && err.type === "entity.parse.failed") {
     statusCode = 400;
     code = "JSON_PARSE_ERROR";
     message = "Invalid JSON body provided";
