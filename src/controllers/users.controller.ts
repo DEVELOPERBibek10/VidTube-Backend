@@ -66,7 +66,6 @@ const registerUser = asyncHandler(
     // return response.
 
     let avatar = null;
-    let coverImage = null;
 
     const { fullName, email, username, password } = req.body;
 
@@ -83,15 +82,6 @@ const registerUser = asyncHandler(
     }
 
     const avatarLocalPath = req.files?.avatar?.[0]?.path;
-    let coverImageLocalPath;
-
-    if (
-      req.files &&
-      Array.isArray(req.files.coverImage) &&
-      req.files.coverImage.length > 0
-    ) {
-      coverImageLocalPath = req.files.coverImage[0]!.path;
-    }
 
     if (!avatarLocalPath) {
       throw new ApiError(
@@ -107,12 +97,6 @@ const registerUser = asyncHandler(
       throw new ApiError(avatar.statusCode, avatar.code, avatar.message);
     }
 
-    if (coverImageLocalPath) {
-      coverImage = await uploadFile(coverImageLocalPath);
-      if (coverImage instanceof ApiError) {
-        throw new ApiError(avatar.statusCode, avatar.code, avatar.message);
-      }
-    }
     try {
       const user = await User.create({
         fullName,
@@ -121,8 +105,8 @@ const registerUser = asyncHandler(
           publicId: avatar.public_id,
         },
         coverImage: {
-          url: coverImage?.secure_url || "",
-          publicId: coverImage?.public_id || "",
+          url: "",
+          publicId: "",
         },
         email: email.toLowerCase(),
         password,
@@ -157,15 +141,7 @@ const registerUser = asyncHandler(
           "STORAGE_SERVICE_UNAVAILABLE",
           "Avatar deletion failed. The asset might be orphan"
         );
-      if (coverImage?.public_id) {
-        const coverImageDeletion = await deleteFile(coverImage.public_id);
-        if (coverImageDeletion instanceof ApiError)
-          throw new ApiError(
-            502,
-            "STORAGE_SERVICE_UNAVAILABLE",
-            "Cover Image deletion failed. The asset might be orphan"
-          );
-      }
+
       console.error("Database Registration Error:", error);
       if (error instanceof ApiError) throw error;
       throw new ApiError(
@@ -392,7 +368,7 @@ const updateAvatar = asyncHandler(
       );
     }
 
-    const user = await User.findById(req.user?._id).select(
+    const user = await User.findById(req.user._id).select(
       "+avatar.publicId -password -watchHistory"
     );
 
@@ -607,7 +583,7 @@ const getWatchHistory = asyncHandler(
       },
     ]);
 
-    if (!user.length || !user[0]?.watchHistory) {
+    if (!user[0]?.length || !user[0]?.watchHistory) {
       throw new ApiError(
         404,
         "NOT_FOUND",
