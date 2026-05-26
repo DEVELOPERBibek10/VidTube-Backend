@@ -1,5 +1,4 @@
 import mongoose, { Schema } from "mongoose";
-import uniqueValidator from "mongoose-unique-validator";
 
 const subscriptionSchema = new Schema({
   subscriber: {
