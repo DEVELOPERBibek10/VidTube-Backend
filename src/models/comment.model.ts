@@ -1,5 +1,4 @@
 import mongoose, { Schema } from "mongoose";
-import uniqueValidator from "mongoose-unique-validator";
 
 const commentSchema = new Schema(
   {
@@ -19,6 +18,5 @@ const commentSchema = new Schema(
   { timestamps: true }
 );
 
-commentSchema.plugin(uniqueValidator);
 
 export const Comment = mongoose.model("Comment", commentSchema);

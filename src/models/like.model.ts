@@ -1,5 +1,4 @@
 import mongoose, { Schema } from "mongoose";
-import uniqueValidator from "mongoose-unique-validator";
 
 const likeSchema = new Schema(
   {
@@ -38,6 +37,5 @@ likeSchema.index(
 likeSchema.index({ video: 1 });
 likeSchema.index({ comment: 1 });
 
-likeSchema.plugin(uniqueValidator);
 
 export const Like = mongoose.model("Like", likeSchema);

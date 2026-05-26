@@ -2,7 +2,6 @@ import { Schema, model } from "mongoose";
 import jwt, { type Secret } from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import type { IUserDocument } from "../types/Model/User.js";
-import uniqueValidator from "mongoose-unique-validator";
 
 const userSchema = new Schema<IUserDocument>(
   {
@@ -98,6 +97,5 @@ userSchema.methods.generateRefreshToken = function () {
   );
 };
 
-userSchema.plugin(uniqueValidator);
 
 export const User = model<IUserDocument>("User", userSchema);

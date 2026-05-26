@@ -1,6 +1,5 @@
 import mongoose, { Schema } from "mongoose";
 import type { IVideo } from "../types/Model/Video.js";
-import uniqueValidator from "mongoose-unique-validator";
 
 const videoSchema = new Schema<IVideo>(
   {
@@ -55,7 +54,5 @@ const videoSchema = new Schema<IVideo>(
   },
   { timestamps: true }
 );
-
-videoSchema.plugin(uniqueValidator);
 
 export const Video = mongoose.model<IVideo>("Video", videoSchema);
