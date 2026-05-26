@@ -21,26 +21,31 @@ const globalErrorHandler = (
     message = err.message;
     code = err.code;
     errors = err.errors;
-  } else if (err instanceof MongooseError.ValidationError) {
-    const errorValues = Object.values(err.errors);
-    const hasUniqueViolation = errorValues.some((el) => el.kind === "unique");
-    const uniqueErrors = errorValues.filter((e) => e.kind === "unique");
-    const uniqueFields = uniqueErrors.map((e) => e.path);
-    statusCode = hasUniqueViolation ? 409 : 400;
-    code = hasUniqueViolation ? "DUPLICATE_KEY_ERROR" : "VALIDATION_ERROR";
-    message = hasUniqueViolation
-      ? `Duplicate value for field(s): ${uniqueFields.join(", ")}`
-      : "Validation Failed";
-    errors = hasUniqueViolation
-      ? uniqueErrors.map((e) => e.message)
-      : errorValues.map((el) => el.message);
   } else if ("code" in err && (err as MongoDuplicateKeyError).code === 11000) {
-    const duplicatedField = Object.keys(
-      (err as MongoDuplicateKeyError).keyValue
-    ).join(", ");
+    const mongoErr = err as MongoDuplicateKeyError & { message?: string };
+    let duplicatedFields: string[] = [];
+    let parsedErrors: string[] = [];
+
+    if (mongoErr.keyValue && typeof mongoErr.keyValue === "object") {
+      duplicatedFields = Object.keys(mongoErr.keyValue);
+      parsedErrors = duplicatedFields.map((f) => `${f} must be unique`);
+      message = `Duplicate value for field(s): ${duplicatedFields.join(", ")}`;
+    } else {
+      const raw = mongoErr.message || "";
+      const idxMatch = raw.match(/index:\s+([\w.]+?)_/i);
+      if (idxMatch && idxMatch[1]) {
+        duplicatedFields = [idxMatch[1]];
+        parsedErrors = duplicatedFields.map((f) => `${f} must be unique`);
+        message = `Duplicate value for field(s): ${duplicatedFields.join(", ")}`;
+      } else {
+        parsedErrors = [raw || "Duplicate key error"];
+        message = "Duplicate key error";
+      }
+    }
+
     statusCode = 409;
     code = "DUPLICATE_KEY_ERROR";
-    message = `Duplicate value for field(s): ${duplicatedField}`;
+    errors = parsedErrors;
   } else if (err instanceof MulterError) {
     statusCode = 400;
     code = "MULTER_ERROR";
