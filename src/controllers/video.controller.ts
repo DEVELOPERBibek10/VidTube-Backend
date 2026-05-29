@@ -456,6 +456,14 @@ const getAllVideos = asyncHandler(
     const skipCount = page ? (page - 1) * limit : 0;
     const pipeline: any[] = [];
 
+    if (!mongoose.Types.ObjectId.isValid(cursor)) {
+      throw new ApiError(
+        400,
+        "INVALID_CURSOR",
+        "The provided cursor is invalid."
+      );
+    }
+
     if (searchText) {
       const queryVector = await getVectorEmbedding(searchText as string);
 
