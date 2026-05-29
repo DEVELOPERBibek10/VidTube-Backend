@@ -402,14 +402,21 @@ export const getVideo = asyncHandler(
 
           isLiked: {
             $cond: {
-              if: { $in: [userId, "$likes.likedBy"] },
+              if: {
+                $in: [new mongoose.Types.ObjectId(userId), "$likes.likedBy"],
+              },
               then: true,
               else: false,
             },
           },
           isSubscribed: {
             $cond: {
-              if: { $in: [userId, "$subscribers.subscriber"] },
+              if: {
+                $in: [
+                  new mongoose.Types.ObjectId(userId),
+                  "$subscribers.subscriber",
+                ],
+              },
               then: true,
               else: false,
             },
@@ -456,7 +463,7 @@ const getAllVideos = asyncHandler(
     const skipCount = page ? (page - 1) * limit : 0;
     const pipeline: any[] = [];
 
-    if (!mongoose.Types.ObjectId.isValid(cursor)) {
+    if (cursor && !mongoose.Types.ObjectId.isValid(cursor)) {
       throw new ApiError(
         400,
         "INVALID_CURSOR",
