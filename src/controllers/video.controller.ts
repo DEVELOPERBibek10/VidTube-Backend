@@ -153,6 +153,14 @@ const updateVideoDetails = asyncHandler(
     const { videoId } = req.params;
     const updateData: any = {};
 
+    if (!mongoose.Types.ObjectId.isValid(videoId)) {
+      throw new ApiError(
+        400,
+        "INVALID_VIDEO_ID",
+        "The provided video ID is invalid."
+      );
+    }
+
     if (title) {
       updateData.title = title;
     }
@@ -186,8 +194,14 @@ const updateThumbnail = asyncHandler(
     res: Response
   ) => {
     const { videoId } = req.params;
-    if (!videoId)
-      throw new ApiError(400, "MISSING_REQUIRED_FIELD", "Video id is required");
+
+    if (!mongoose.Types.ObjectId.isValid(videoId)) {
+      throw new ApiError(
+        400,
+        "INVALID_VIDEO_ID",
+        "The provided video ID is invalid."
+      );
+    }
 
     const thumbnailLocalPath = req.file?.path;
 
@@ -195,7 +209,7 @@ const updateThumbnail = asyncHandler(
       throw new ApiError(
         400,
         "MISSING_REQUIRED_FIELD",
-        "Thumbnial is a required field"
+        "Thumbnail is a required field"
       );
     }
 
@@ -257,6 +271,14 @@ const deleteVideo = asyncHandler(
   ) => {
     const { videoId } = req.params;
 
+    if (!mongoose.Types.ObjectId.isValid(videoId)) {
+      throw new ApiError(
+        400,
+        "INVALID_VIDEO_ID",
+        "The provided video ID is invalid."
+      );
+    }
+
     const video = await Video.findById({
       _id: videoId,
       owner: req.user._id,
@@ -304,6 +326,14 @@ export const getVideo = asyncHandler(
   ) => {
     const { videoId } = req.params;
 
+    if (!mongoose.Types.ObjectId.isValid(videoId)) {
+      throw new ApiError(
+        400,
+        "INVALID_VIDEO_ID",
+        "The provided video ID is invalid."
+      );
+    }
+    const userId = req.user._id;
     const videoResult = await Video.aggregate([
       { $match: { _id: new mongoose.Types.ObjectId(videoId) } },
       {
@@ -311,7 +341,7 @@ export const getVideo = asyncHandler(
           from: "users",
           localField: "owner",
           foreignField: "_id",
-          as: "owner",
+          as: "creator",
           pipeline: [
             {
               $project: {
@@ -322,9 +352,68 @@ export const getVideo = asyncHandler(
           ],
         },
       },
+      { $unwind: "$creator" },
+      {
+        $lookup: {
+          from: "likes",
+          localField: "_id",
+          foreignField: "video",
+          as: "likes",
+          pipeline: [
+            {
+              $project: {
+                likedBy: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "comments",
+          localField: "_id",
+          foreignField: "video",
+          as: "comments",
+          pipeline: [
+            {
+              $project: { _id: 1 },
+            },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "subscriptions",
+          localField: "owner._id",
+          foreignField: "channel",
+          as: "subscribers",
+          pipeline: [
+            {
+              $project: { subscriber: 1 },
+            },
+          ],
+        },
+      },
       {
         $addFields: {
-          owner: { $arrayElemAt: ["$owner", 0] },
+          likesCount: { $size: "$likes" },
+          commentsCount: { $size: "$comments" },
+          subscriberCount: { $size: "$subscribers" },
+
+          isLiked: {
+            $cond: {
+              if: { $in: [userId, "$likes.likedBy"] },
+              then: true,
+              else: false,
+            },
+          },
+          isSubscribed: {
+            $cond: {
+              if: { $in: [userId, "$subscribers.subscriber"] },
+              then: true,
+              else: false,
+            },
+          },
         },
       },
       {
@@ -334,57 +423,25 @@ export const getVideo = asyncHandler(
           description: 1,
           duration: 1,
           views: 1,
-          owner: 1,
+          creator: 1,
+          likesCount: 1,
+          commentsCount: 1,
+          subscriberCount: 1,
+          isLiked: 1,
+          isSubscribed: 1,
+          createdAt: 1,
         },
       },
     ]);
 
-    if (!videoResult) throw new ApiError(404, "NOT_FOUND", "Video not found");
+    if (!videoResult.length)
+      throw new ApiError(404, "NOT_FOUND", "Video not found");
 
     const video = videoResult[0];
 
-    const likesPromise = Like.countDocuments({ video: videoId });
-    const commentsPromise = Comment.countDocuments({ video: videoId });
-    const subscribersPromise = Subscription.countDocuments({
-      channel: video.owner._id,
-    });
-
-    const isLikedPromise = Like.exists({
-      likedBy: req.user?._id,
-      video: videoId,
-    });
-    const isSubscribedPromise = Subscription.exists({
-      channel: video.owner._id,
-      subscriber: req.user?._id,
-    });
-
-    const [likes, comments, subscribers, isLiked, isSubscribed] =
-      await Promise.allSettled([
-        likesPromise,
-        commentsPromise,
-        subscribersPromise,
-        isLikedPromise,
-        isSubscribedPromise,
-      ]);
-
-    const videoResponse = {
-      ...video,
-      likesCount: likes,
-      commentsCount: comments,
-      subscriberCount: subscribers,
-      isLiked: !!isLiked,
-      isSubscribed: !!isSubscribed,
-    };
-
     return res
       .status(200)
-      .json(
-        new ApiResponse(
-          200,
-          videoResponse,
-          "Video details fetched successfully"
-        )
-      );
+      .json(new ApiResponse(200, video, "Video details fetched successfully"));
   }
 );
 
