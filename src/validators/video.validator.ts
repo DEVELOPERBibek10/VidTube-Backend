@@ -16,7 +16,10 @@ export const videoRequestSchema = z.object({
 
     videoUrl: z.string().trim().min(1, { error: "Video url is required." }),
 
-    videoPublicId: z.string().min(1, { error: "Public Id is required." }),
+    videoPublicId: z
+      .string()
+      .trim()
+      .min(1, { error: "Public Id is required." }),
 
     duration: z.coerce
       .number()
@@ -57,9 +60,7 @@ export const updateVideoSchema = z.object({
 
 export const updateVideoParamsSchema = z.object({
   params: z.object({
-    videoId: z.string().regex(/^[a-fA-F0-9]{24}$/, {
-      error: "Invalid Video Id format.",
-    }),
+    videoId: z.string().trim().min(1, { error: "Video Id is required." }),
   }),
 });
 
@@ -71,12 +72,7 @@ export const videoQuerySchema = z.object({
         z.coerce.number().min(1).default(1)
       )
       .optional(),
-    cursor: z
-      .string()
-      .regex(/^[a-fA-F0-9]{24}$/, {
-        error: "Invalid Video Id format.",
-      })
-      .optional(),
+    cursor: z.string().trim().min(1, { error: "cursor is required." }),
     searchText: z
       .string()
       .trim()
