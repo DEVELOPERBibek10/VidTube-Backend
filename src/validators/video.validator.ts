@@ -60,7 +60,11 @@ export const updateVideoSchema = z.object({
 
 export const updateVideoParamsSchema = z.object({
   params: z.object({
-    videoId: z.string().trim().min(1, { error: "Video Id is required." }),
+    videoId: z
+      .string()
+      .trim()
+      .min(1, { error: "Video Id is required." })
+      .max(24, { error: "The provided video ID is invalid." }),
   }),
 });
 
@@ -72,7 +76,12 @@ export const videoQuerySchema = z.object({
         z.coerce.number().min(1).default(1)
       )
       .optional(),
-    cursor: z.string().trim().min(1, { error: "cursor is required." }),
+    cursor: z
+      .string()
+      .trim()
+      .min(1, { error: "cursor is required." })
+      .max(24, { error: "The provided cursor is invalid." })
+      .optional(),
     searchText: z
       .string()
       .trim()
