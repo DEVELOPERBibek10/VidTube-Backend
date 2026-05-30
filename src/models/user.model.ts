@@ -11,7 +11,6 @@ const userSchema = new Schema<IUserDocument>(
       unique: true,
       lowercase: true,
       trim: true,
-      index: true,
     },
     email: {
       type: String,
@@ -24,7 +23,6 @@ const userSchema = new Schema<IUserDocument>(
       type: String,
       required: true,
       trim: true,
-      index: true,
     },
     avatar: {
       url: {
@@ -97,5 +95,6 @@ userSchema.methods.generateRefreshToken = function () {
   );
 };
 
+userSchema.index({ username: 1 }, { unique: true, background: true });
 
 export const User = model<IUserDocument>("User", userSchema);

@@ -50,9 +50,12 @@ const videoSchema = new Schema<IVideo>(
     title_embedding: {
       type: [Number],
       default: [],
+      select: false,
     },
   },
   { timestamps: true }
 );
+
+videoSchema.index({ owner: 1, isPublished: 1 },{background: true});
 
 export const Video = mongoose.model<IVideo>("Video", videoSchema);
