@@ -490,7 +490,7 @@ const getAllVideos = asyncHandler(
             queryVector: queryVector,
             numCandidates: vectorLimit * 10,
             limit: vectorLimit,
-            filter: { isPublished: true },
+            filter: { isPublished: { $eq: true } },
           },
         },
         { $skip: skipCount }
@@ -499,7 +499,7 @@ const getAllVideos = asyncHandler(
       if (!cursor) {
         pipeline.push(
           { $match: { isPublished: true } },
-          { $sort: { createdAt: -1 } }
+          { $sort: { createdAt: -1, views: -1 } }
         );
       } else {
         pipeline.push(
@@ -509,7 +509,7 @@ const getAllVideos = asyncHandler(
               _id: { $lt: new Types.ObjectId(cursor) },
             },
           },
-          { $sort: { createdAt: -1 } }
+          { $sort: { createdAt: -1, views: -1 } }
         );
       }
     }
@@ -597,12 +597,16 @@ const getSuggestions = asyncHandler(
     ]);
 
     if (!suggestions) {
-      return res.send(200).json([]);
+      return res
+        .status(200)
+        .json(new ApiResponse(200, [], "No suggestions found"));
     }
 
     const titles = suggestions.map((v) => v.title);
 
-    return res.status(200).json(titles);
+    return res
+      .status(200)
+      .json(new ApiResponse(200, titles, "Suggestions fetched successfully"));
   }
 );
 
