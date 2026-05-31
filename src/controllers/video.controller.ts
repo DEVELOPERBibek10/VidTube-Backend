@@ -357,9 +357,15 @@ export const getVideo = asyncHandler(
         $lookup: {
           from: "likes",
           localField: "_id",
-          foreignField: "likableId",
+          foreignField: "likable",
           as: "likes",
           pipeline: [
+            {
+              $match: {
+                likableType: "Video",
+              },
+            },
+
             {
               $project: {
                 likedBy: 1,
@@ -384,7 +390,7 @@ export const getVideo = asyncHandler(
       {
         $lookup: {
           from: "subscriptions",
-          localField: "owner._id",
+          localField: "owner",
           foreignField: "channel",
           as: "subscribers",
           pipeline: [
