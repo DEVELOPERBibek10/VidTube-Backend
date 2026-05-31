@@ -95,6 +95,4 @@ userSchema.methods.generateRefreshToken = function () {
   );
 };
 
-userSchema.index({ username: 1 }, { unique: true, background: true });
-
 export const User = model<IUserDocument>("User", userSchema);
