@@ -1,6 +1,4 @@
 import mongoose, { Schema } from "mongoose";
-import { ApiError } from "../utils/ApiError.js";
-import type { NextFunction } from "express";
 
 const likeSchema = new Schema(
   {
@@ -9,7 +7,7 @@ const likeSchema = new Schema(
       ref: "User",
       required: true,
     },
-    likableId: {
+    likable: {
       type: Schema.Types.ObjectId,
       required: true,
     },
@@ -23,11 +21,11 @@ const likeSchema = new Schema(
 );
 
 likeSchema.index(
-  { likedBy: 1, likableId: 1 },
+  { likedBy: 1, likable: 1 },
   {
     unique: true,
   }
 );
 
-likeSchema.index({ likableId: 1 });
+likeSchema.index({ likable: 1 });
 export const Like = mongoose.model("Like", likeSchema);
