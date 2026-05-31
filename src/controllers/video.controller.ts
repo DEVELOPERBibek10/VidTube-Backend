@@ -357,7 +357,7 @@ export const getVideo = asyncHandler(
         $lookup: {
           from: "likes",
           localField: "_id",
-          foreignField: "video",
+          foreignField: "likableId",
           as: "likes",
           pipeline: [
             {
