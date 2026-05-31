@@ -45,7 +45,6 @@ const videoSchema = new Schema<IVideo>(
     owner: {
       type: Schema.Types.ObjectId,
       ref: "User",
-      index: true,
     },
     title_embedding: {
       type: [Number],
@@ -56,6 +55,6 @@ const videoSchema = new Schema<IVideo>(
   { timestamps: true }
 );
 
-videoSchema.index({ owner: 1, isPublished: 1 },{background: true});
+videoSchema.index({ owner: 1, isPublished: 1 }, { background: true });
 
 export const Video = mongoose.model<IVideo>("Video", videoSchema);
