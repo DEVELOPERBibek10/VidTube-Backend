@@ -8,8 +8,8 @@ export type AsyncRequestHandler<T = Request> = (
 
 const asyncHandler = <T = Request>(requestHandler: AsyncRequestHandler<T>) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    Promise.resolve(requestHandler(req as unknown as T, res, next)).catch(
-      (err) => next(err)
+    Promise.resolve(requestHandler(req as T, res, next)).catch((err) =>
+      next(err)
     );
   };
 };
