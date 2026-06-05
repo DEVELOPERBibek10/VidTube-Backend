@@ -40,10 +40,10 @@ userRouter.route("/register").post(
 );
 
 userRouter.route("/login").post(validation(loginSchema), loginUser);
-userRouter.route("/logout").post(logoutUser);
 userRouter.route("/refresh-token").post(refreshAccessToken);
 
 // secure route
+userRouter.route("/logout").post(verifyJWT, logoutUser);
 userRouter.route("/current-user").get(verifyJWT, getCurrentUser);
 userRouter
   .route("/details")
