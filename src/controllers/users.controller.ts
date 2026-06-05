@@ -33,19 +33,16 @@ const generateAccessAndRefreshToken = async (
   userId: string | Types.ObjectId
 ) => {
   try {
-    const user = await User.findById(userId);
-    if (!user) throw new Error("Unable to find the user");
-    const accessToken = user.generateAccessToken();
-    const refreshToken = user.generateRefreshToken();
+    const user = await User.findById(userId)!;
+    const accessToken = user!.generateAccessToken();
+    const refreshToken = user!.generateRefreshToken();
 
-    user.refreshToken = refreshToken;
-    await user.save({ validateBeforeSave: false });
+    user!.refreshToken = refreshToken;
+    await user!.save({ validateBeforeSave: false });
 
     return { accessToken, refreshToken };
   } catch (error) {
-    if (error instanceof Error) {
-      throw new ApiError(404, "USER_NOT_FOUND", error.message);
-    }
+    console.log("Unexpected error (generate token): ", error);
     throw new ApiError(
       500,
       "INTERNAL_SERVER_ERROR",
