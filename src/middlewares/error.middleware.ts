@@ -1,85 +1,44 @@
+// src/middlewares/globalErrorHandler.ts
 import type { NextFunction, Request, Response } from "express";
-import type { GlobalError } from "../types/Error/GobalError.js";
-import { Error as MongooseError } from "mongoose";
 import { ApiError } from "../utils/ApiError.js";
 import { MulterError } from "multer";
-import type { MongoDuplicateKeyError } from "../types/Error/mongooseError.js";
+import { Error as MongooseError } from "mongoose";
+import {
+  handleMongoDuplicateKey,
+  handleMulterError,
+  handleCastError,
+  handleParseError,
+} from "../utils/errorTransformers.js";
 
 const globalErrorHandler = (
-  err: GlobalError,
+  err: any,
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  let statusCode = 500;
-  let message = "Internal Server Error";
-  let errors: any[] = [];
-  let code = "INTERNAL_SERVER_ERROR";
+  let error = err;
 
-  if (err instanceof ApiError) {
-    statusCode = err.statusCode;
-    message = err.message;
-    code = err.code;
-    errors = err.errors;
-  } else if ("code" in err && (err as MongoDuplicateKeyError).code === 11000) {
-    const mongoErr = err as MongoDuplicateKeyError & { message?: string };
-    let duplicatedFields: string[] = [];
-    let parsedErrors: string[] = [];
+  if (err.code === 11000) error = handleMongoDuplicateKey(err);
+  else if (err instanceof MulterError) error = handleMulterError(err);
+  else if (err instanceof MongooseError.CastError) error = handleCastError(err);
+  else if (err.type === "entity.parse.failed") error = handleParseError();
 
-    if (mongoErr.keyValue && typeof mongoErr.keyValue === "object") {
-      duplicatedFields = Object.keys(mongoErr.keyValue);
-      parsedErrors = duplicatedFields.map((f) => `${f} must be unique`);
-      message = `Duplicate value for field(s): ${duplicatedFields.join(", ")}`;
-    } else {
-      const raw = mongoErr.message || "";
-      const idxMatch = raw.match(/index:\s+([\w.]+?)_/i);
-      if (idxMatch && idxMatch[1]) {
-        duplicatedFields = [idxMatch[1]];
-        parsedErrors = duplicatedFields.map((f) => `${f} must be unique`);
-        message = `Duplicate value for field(s): ${duplicatedFields.join(", ")}`;
-      } else {
-        parsedErrors = [raw || "Duplicate key error"];
-        message = "Duplicate key error";
-      }
-    }
-
-    statusCode = 409;
-    code = "DUPLICATE_KEY_ERROR";
-    errors = parsedErrors;
-  } else if (err instanceof MulterError) {
-    statusCode = 400;
-    code = "MULTER_ERROR";
-    if (err.code === "LIMIT_FILE_SIZE") {
-      message = "File is too large. Max limit is 10MB.";
-    } else if (err.code === "LIMIT_UNEXPECTED_FILE") {
-      message = "Unexpected file field.";
-    } else {
-      message = err.message || "File upload error.";
-    }
-  } else if (err instanceof MongooseError.CastError) {
-    statusCode = 400;
-    code = "CAST_ERROR";
-    message = `Invalid resource identifier: ${err.path}`;
-  } else if ("type" in err && err.type === "entity.parse.failed") {
-    statusCode = 400;
-    code = "JSON_PARSE_ERROR";
-    message = "Invalid JSON body provided";
-  } else if (err instanceof Error) {
-    message = err.message || message;
+  if (!(error instanceof ApiError)) {
+    console.error("CRITICAL SYSTEM ERROR:", error);
+    error = new ApiError(
+      500,
+      "INTERNAL_SERVER_ERROR",
+      error.message || "Internal Server Error"
+    );
   }
 
-  // Send response
-  return res
-    .status(statusCode)
-    .json(
-      new ApiError(
-        statusCode,
-        code,
-        message,
-        errors,
-        process.env.NODE_ENV === "development" ? err.stack : undefined
-      )
-    );
+  res.status(error.statusCode).json({
+    success: false,
+    code: error.code,
+    message: error.message,
+    errors: error.errors?.length ? error.errors : undefined,
+    stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
+  });
 };
 
 export default globalErrorHandler;
