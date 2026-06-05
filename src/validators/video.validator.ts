@@ -22,10 +22,8 @@ export const videoRequestSchema = z.object({
       .min(1, { error: "Public Id is required." }),
 
     duration: z.coerce
-      .number()
-      .min(1, { error: "Video duration is required." })
-      .positive({ error: "Duration must be a positive number." }),
-
+      .number({ message: "Video duration must be a valid number." })
+      .min(1, { message: "Video duration must be at least 1." }),
     isPublished: z
       .enum(["true", "false"], {
         error: "Please provide a valid status",
