@@ -2,7 +2,7 @@ import type { MulterError } from "multer";
 import { ApiError } from "./ApiError.js";
 import { Error as MongooseError } from "mongoose";
 
-export const handleMongDuplicateKey = (err: any): ApiError => {
+export const handleMongoDuplicateKey = (err: any): ApiError => {
   let duplicatedFields: [] | string[] = [];
   if (err.keyValue && typeof err.keyValue === "object") {
     duplicatedFields = Object.keys(err.keyValue);
