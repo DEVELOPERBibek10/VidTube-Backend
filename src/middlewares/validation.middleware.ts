@@ -26,15 +26,13 @@ export const validation = (schema: ZodType) =>
           .map((it) => `${it.field}: ${it.message}`)
           .join(", ");
 
-        return next(
-          new ApiError(
-            400,
-            "VALIDATION_ERROR",
-            summaryMessage || error.message,
-            validationIssues
-          )
+        throw new ApiError(
+          400,
+          "VALIDATION_ERROR",
+          summaryMessage || error.message,
+          validationIssues
         );
       }
-      next(error);
+      throw error;
     }
   });
