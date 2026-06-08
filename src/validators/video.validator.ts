@@ -48,7 +48,12 @@ export const updateVideoSchema = z.object({
         .max(400, { error: "Description cannot exceed 400 characters." })
         .optional(),
 
-      isPublished: z.coerce.boolean().optional(),
+      isPublished: z
+        .enum(["true", "false"], {
+          error: "Please provide a valid status",
+        })
+        .transform((val) => val === "true")
+        .optional(),
     })
     .refine((data) => data.title || data.description || data.isPublished, {
       error:
