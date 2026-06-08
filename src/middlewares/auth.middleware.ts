@@ -37,20 +37,16 @@ export const verifyJWT = asyncHandler(
 
       next();
     } catch (error) {
-      if (error instanceof ApiError) next(error);
+      if (error instanceof ApiError) {
+        throw error;
+      }
       if (error instanceof jwt.TokenExpiredError) {
-        return next(
-          new ApiError(401, "ACCESS_TOKEN_EXPIRED", "Session expired")
-        );
+        throw new ApiError(401, "ACCESS_TOKEN_EXPIRED", "Session expired");
       }
       if (error instanceof jwt.JsonWebTokenError) {
-        return next(
-          new ApiError(401, "INVALID_ACCESS_TOKEN", "Invalid access token")
-        );
+        throw new ApiError(401, "INVALID_ACCESS_TOKEN", "Invalid access token");
       }
-      return next(
-        new ApiError(500, "INTERNAL_SERVER_ERROR", "Internal Server Error")
-      );
+      throw error;
     }
   }
 );
