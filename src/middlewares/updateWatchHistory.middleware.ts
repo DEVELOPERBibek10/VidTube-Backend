@@ -14,7 +14,7 @@ const updateWatchHistory = asyncHandler(
     const { videoId } = req.params;
     if (!videoId) throw new ApiError(400, "Video id is required");
 
-    const user = await User.findById(req.user?._id).select("-_id watchHistory");
+    const user = await User.findById(req.user._id).select("-_id watchHistory");
 
     const isPresent = await Video.exists({ _id: videoId });
     if (!isPresent) throw new ApiError(404, "Video not found");
@@ -23,21 +23,21 @@ const updateWatchHistory = asyncHandler(
       user!.watchHistory[0]?.toString() === isPresent._id.toString();
 
     if (isRepeatedRefresh) {
-      next();
+      return next();
     }
 
     const existsInHistory = user!.watchHistory.includes(videoId as never);
 
     if (existsInHistory) {
-      await User.findByIdAndUpdate(req.user?._id, {
+      await User.findByIdAndUpdate(req.user._id, {
         $pull: { watchHistory: videoId },
       });
 
-      await User.findByIdAndUpdate(req.user?._id, {
+      await User.findByIdAndUpdate(req.user._id, {
         $push: { watchHistory: { $each: [videoId], $position: 0 } },
       });
     } else {
-      await User.findByIdAndUpdate(req.user?._id, {
+      await User.findByIdAndUpdate(req.user._id, {
         $push: { watchHistory: { $each: [videoId], $position: 0 } },
       });
       await Video.findByIdAndUpdate(videoId, { $inc: { views: 1 } });
