@@ -5,7 +5,7 @@ import { deleteFile, uploadFile } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 import mongoose, { Types } from "mongoose";
-import type { Request } from "express";
+import type { NextFunction, Request } from "express";
 
 import type {
   UserResponse,
@@ -185,14 +185,6 @@ const loginUser = asyncHandler(
 const logoutUser = asyncHandler(async (req: Request, res: Response) => {
   const incomingRefreshToken = req.cookies?.refreshToken;
 
-  if (!incomingRefreshToken) {
-    return res
-      .status(200)
-      .clearCookie("accessToken", accessTokenOptions)
-      .clearCookie("refreshToken", refreshTokenOptions)
-      .json(new ApiResponse<null>(200, null, "User logged out"));
-  }
-
   await User.findOneAndUpdate(
     { refreshToken: incomingRefreshToken },
     { $unset: { refreshToken: 1 } },
@@ -207,7 +199,7 @@ const logoutUser = asyncHandler(async (req: Request, res: Response) => {
 });
 
 const refreshAccessToken = asyncHandler(
-  async (req: TypedRequest, res: Response) => {
+  async (req: TypedRequest, res: Response, next: NextFunction) => {
     const incomingRefreshToken = req.cookies.refreshToken;
 
     if (!incomingRefreshToken) {
@@ -224,23 +216,27 @@ const refreshAccessToken = asyncHandler(
         process.env.REFRESH_TOKEN_SECRET!
       ) as DecodedToken;
     } catch (error) {
-      if (error instanceof jwt.TokenExpiredError) {
+      if (
+        error instanceof jwt.TokenExpiredError ||
+        error instanceof jwt.JsonWebTokenError
+      ) {
         res
           .clearCookie("accessToken", accessTokenOptions)
           .clearCookie("refreshToken", refreshTokenOptions);
+      }
+
+      if (error instanceof jwt.TokenExpiredError) {
         throw new ApiError(
           401,
           "REFRESH_TOKEN_EXPIRED",
           "Session expired, please login again"
         );
       }
+
       if (error instanceof jwt.JsonWebTokenError) {
-        console.log("Cookie cleared: Malformed refresh token");
-        res
-          .clearCookie("accessToken", accessTokenOptions)
-          .clearCookie("refreshToken", refreshTokenOptions);
         throw new ApiError(401, "INVALID_TOKEN", "Refresh token is malformed.");
       }
+
       throw error;
     }
 
@@ -250,12 +246,14 @@ const refreshAccessToken = asyncHandler(
       res
         .clearCookie("accessToken", accessTokenOptions)
         .clearCookie("refreshToken", refreshTokenOptions);
+
       throw new ApiError(
         401,
         "INVALID_TOKEN",
         "Logged out due to invalid credentials!"
       );
     }
+
     const { accessToken, refreshToken: newRefreshToken } =
       await generateAccessAndRefreshToken(user._id);
     return res
