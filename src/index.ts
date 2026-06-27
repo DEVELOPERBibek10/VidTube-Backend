@@ -7,10 +7,8 @@ async function server() {
   try {
     const database = await Promise.all([connectDB(), connectRedis()]);
     if (database.every((db) => db)) {
-      const server = app.listen(process.env.PORT || 8000, () => {
-        console.log(
-          `Server running on http://localhost:${process.env.PORT || 8000}`
-        );
+      const server = app.listen(process.env.PORT, () => {
+        console.log(`Server running on http://localhost:${process.env.PORT}`);
       });
       server.on("error", (err) => {
         console.error("EXPRESS SERVER FAILURE: Could not bind to port :", err);
