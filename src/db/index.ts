@@ -9,6 +9,7 @@ const connectDB = async () => {
     console.log(
       `\n MONGO DB connect !! DB HOST: ${connectionInstance.connection.host} \n`
     );
+    return connectionInstance.connection.host;
   } catch (error) {
     console.error("MONGO DB connection error", error);
     process.exit(1);
