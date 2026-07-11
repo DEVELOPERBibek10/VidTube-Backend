@@ -3,7 +3,7 @@ import jwt, { type JwtPayload } from "jsonwebtoken";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import type { NextFunction, Response } from "express";
-import type { AuthTypedRequest } from "../types/Request-Response/request.js";
+import type { AuthTypedRequest } from "../types/request.js";
 
 export interface DecodedToken extends JwtPayload {
   _id: string;
@@ -27,13 +27,13 @@ export const verifyJWT = asyncHandler(
         process.env.ACCESS_TOKEN_SECRET!
       ) as DecodedToken;
 
-      const user = await User.findById(decodedToken._id).select("-password");
+      const user = await User.findById(decodedToken._id);
 
       if (!user) {
         throw new ApiError(404, "NOT_FOUND", "User not found!");
       }
 
-      req.user = user;
+      req.user = user.toObject() as AuthTypedRequest["user"];
 
       next();
     } catch (error) {
@@ -41,7 +41,7 @@ export const verifyJWT = asyncHandler(
         throw error;
       }
       if (error instanceof jwt.TokenExpiredError) {
-        throw new ApiError(401, "ACCESS_TOKEN_EXPIRED", "Session expired");
+        throw new ApiError(401, "ACCESS_TOKEN_EXPIRED", "Session expired!");
       }
       if (error instanceof jwt.JsonWebTokenError) {
         throw new ApiError(401, "INVALID_ACCESS_TOKEN", "Invalid access token");
