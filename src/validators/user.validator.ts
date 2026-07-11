@@ -43,11 +43,11 @@ export const loginSchema = z.object({
 
 export const updateUserDetailSchema = z.object({
   body: z.object({
-    username: z
+    fullName: z
       .string()
       .trim()
-      .min(3, { error: "Username must be at least 3 characters" })
-      .max(20, { error: "Username cannot be more than 20 characters." }),
+      .min(5, { error: "Full name must be at least 5 characters" })
+      .max(25, { error: "Full name cannot be more than 25 characters." }),
   }),
 });
 
