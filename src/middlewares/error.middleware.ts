@@ -8,6 +8,7 @@ import {
   handleMulterError,
   handleCastError,
   handleParseError,
+  handleMongooseValidationError,
 } from "../utils/errorTransformers.js";
 import type { GlobalError } from "../types/Error/GobalError.js";
 
@@ -23,6 +24,8 @@ const globalErrorHandler = (
     error = handleMongoDuplicateKey(err);
   else if (err instanceof MulterError) error = handleMulterError(err);
   else if (err instanceof MongooseError.CastError) error = handleCastError(err);
+  else if (err instanceof MongooseError.ValidationError)
+    error = handleMongooseValidationError(err);
   else if (
     "body" in err &&
     typeof err.status === "number" &&
