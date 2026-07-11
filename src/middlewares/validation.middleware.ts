@@ -1,19 +1,28 @@
 import type { Response, NextFunction } from "express";
-import { ZodError } from "zod";
+import z, { ZodError, ZodObject } from "zod";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ZodType } from "zod";
-import type { TypedRequest } from "../types/Request-Response/request.js";
+import type { TypedRequest } from "../types/request.js";
 import { ApiError } from "../utils/ApiError.js";
+import type { ParsedQs } from "qs";
 
-export const validation = (schema: ZodType) =>
+type RequestSchema = ZodObject<{
+  body?: ZodType;
+  params?: ZodType;
+  query?: ZodType;
+}>;
+
+export const validation = (schema: RequestSchema) =>
   asyncHandler(async (req: TypedRequest, res: Response, next: NextFunction) => {
     try {
-      await schema.parseAsync({
+      const parseData = await schema.parseAsync({
         body: req.body,
         params: req.params,
         query: req.query,
       });
-
+      req.body = parseData.body;
+      (req as any).params = parseData.params;
+      req.query = parseData.query as ParsedQs;
       next();
     } catch (error) {
       if (error instanceof ZodError) {
