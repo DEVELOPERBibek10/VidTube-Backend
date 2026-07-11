@@ -33,7 +33,7 @@ export const verifyJWT = asyncHandler(
         throw new ApiError(404, "NOT_FOUND", "User not found!");
       }
 
-      req.user = user.toObject() as AuthTypedRequest["user"];
+      req.user = user;
 
       next();
     } catch (error) {
