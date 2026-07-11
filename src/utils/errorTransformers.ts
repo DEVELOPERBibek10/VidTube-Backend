@@ -21,9 +21,8 @@ export const handleMongoDuplicateKey = (
     );
   }
 
-  const parsedErrors = duplicatedFields.length
-    ? duplicatedFields.map((f) => `${f} must be unique`)
-    : ["Duplicate key error"];
+  const parsedErrors = duplicatedFields.map((f) => `${f} must be unique`);
+
   return new ApiError(
     409,
     "DUPLICATE_KEY_ERROR",
@@ -61,7 +60,21 @@ export const handleParseError = (err: any): ApiError => {
     );
   }
   if (err.type === "encoding.unsupported") {
-    return new ApiError(400, "UNSUPPORTED_ENCODING", "Unsupported encoding");
+    throw new ApiError(400, "UNSUPPORTED_ENCODING", "Unsupported encoding");
   }
   return new ApiError(400, "PARSE_ERROR", "Failed to parse request body");
+};
+
+export const handleMongooseValidationError = (
+  error: MongooseError.ValidationError
+) => {
+  const messages = Object.values(error.errors)
+    .map((err) => err.message)
+    .join(",");
+
+  return new ApiError(
+    400,
+    "VALIDATION_ERROR",
+    messages || "Databse validation failed"
+  );
 };
