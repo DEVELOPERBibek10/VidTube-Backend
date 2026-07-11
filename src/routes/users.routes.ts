@@ -9,7 +9,6 @@ import {
   updateAvatar,
   updateCoverImage,
   getUserChannelProfile,
-  getWatchHistory,
 } from "../controllers/users.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
@@ -24,20 +23,7 @@ import {
 
 const userRouter = Router();
 
-userRouter.route("/register").post(
-  upload.fields([
-    {
-      name: "avatar",
-      maxCount: 1,
-    },
-    {
-      name: "coverImage",
-      maxCount: 1,
-    },
-  ]),
-  validation(registerSchema),
-  registerUser
-);
+userRouter.route("/register").post(validation(registerSchema), registerUser);
 
 userRouter.route("/login").post(validation(loginSchema), loginUser);
 userRouter.route("/refresh-token").post(refreshAccessToken);
@@ -57,6 +43,5 @@ userRouter
 userRouter
   .route("/profile/:username")
   .get(verifyJWT, validation(userParamSchema), getUserChannelProfile);
-userRouter.route("/watch-history").get(verifyJWT, getWatchHistory);
 
 export default userRouter;
