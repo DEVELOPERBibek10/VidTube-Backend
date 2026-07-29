@@ -27,27 +27,27 @@ const userSchema = new Schema<IUserDocument>(
     avatar: {
       url: {
         type: String,
-        required: true,
+        default: "",
       },
       publicId: {
         type: String,
-        required: true,
-        select: false,
+        default: "",
       },
     },
     coverImage: {
       url: {
         type: String,
+        default: "",
       },
       publicId: {
         type: String,
-        select: false,
+        default: "",
       },
     },
-    watchHistory: [{ type: Schema.Types.ObjectId, ref: "Video" }],
     password: {
       type: String,
       required: [true, "Password is required"],
+      select: false,
     },
     refreshToken: {
       type: String,
@@ -84,8 +84,6 @@ userSchema.methods.generateRefreshToken = function () {
   return jwt.sign(
     {
       _id: this._id,
-      email: this.email,
-      username: this.username,
       token_type: "refresh",
     },
     process.env.REFRESH_TOKEN_SECRET! as Secret,
