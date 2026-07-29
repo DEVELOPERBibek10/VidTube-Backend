@@ -95,7 +95,7 @@ export const videoQuerySchema = z.object({
   }),
 });
 
-export type VideoSchema = z.infer<typeof videoRequestSchema>["body"];
+export type VideoUploadSchema = z.infer<typeof videoRequestSchema>["body"];
 export type UpdateVideoSchema = z.infer<typeof updateVideoSchema>["body"];
 export type UpdateVideoParamsSchema = z.infer<
   typeof updateVideoParamsSchema
