@@ -3,19 +3,16 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { type Response } from "express";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
-import type { AuthTypedRequest } from "../types/Request-Response/request.js";
+import type { AuthTypedRequest } from "../types/request.js";
 import { Video } from "../models/video.model.js";
 import { deleteFile, uploadFile } from "../utils/cloudinary.js";
 import mongoose from "mongoose";
-import { Like } from "../models/like.model.js";
-import { Comment } from "../models/comment.model.js";
-import { Subscription } from "../models/subscription.model.js";
 import getVectorEmbedding from "../utils/vectorEmbedding.js";
 import type {
   UpdateVideoParamsSchema,
   UpdateVideoSchema,
   VideoQuerySchema,
-  VideoSchema,
+  VideoUploadSchema,
 } from "../validators/video.validator.js";
 import { Types } from "mongoose";
 
@@ -54,7 +51,7 @@ const getVideoSignature = asyncHandler(
 );
 
 const uploadVideo = asyncHandler(
-  async (req: AuthTypedRequest<VideoSchema>, res: Response) => {
+  async (req: AuthTypedRequest<VideoUploadSchema>, res: Response) => {
     const {
       title,
       description,
@@ -75,14 +72,6 @@ const uploadVideo = asyncHandler(
 
     const thumbnail = await uploadFile(thumbnailLocalPath);
 
-    if (thumbnail instanceof ApiError) {
-      throw new ApiError(
-        thumbnail.statusCode,
-        thumbnail.code,
-        thumbnail.message
-      );
-    }
-
     try {
       const video = await Video.create({
         title,
@@ -100,46 +89,46 @@ const uploadVideo = asyncHandler(
         duration,
       });
 
-      const createdVideo = await Video.exists({ _id: video._id }).select(
-        "-owner"
-      );
+      const createdVideo = {
+        title: video.title,
+        description: video.description,
+        isPublished: video.isPublished,
+        videoFile: {
+          url: video.videoFile.url,
+          publicId: video.videoFile.publicId,
+        },
+        thumbnail: {
+          url: video.thumbnail.url,
+          publicId: video.thumbnail.publicId,
+        },
+        duration: video.duration,
+      };
 
-      if (!createdVideo) {
-        throw new ApiError(
-          500,
-          "INTERNAL_SERVER_ERROR",
-          "Error uploading video"
-        );
-      }
       return res
         .status(201)
         .json(
           new ApiResponse(201, createdVideo, "Video uploaded Sucessfully.")
         );
     } catch (error: any) {
-      const thumbnailDeletion = await deleteFile(thumbnail.public_id);
-      if (thumbnailDeletion instanceof ApiError) {
-        throw new ApiError(
-          thumbnailDeletion.statusCode,
-          thumbnailDeletion.code,
-          thumbnailDeletion.message
+      const response = await Promise.allSettled([
+        deleteFile(thumbnail.public_id),
+        deleteFile(videoPublicId, "video"),
+      ]);
+      if (
+        response[0].status === "rejected" &&
+        response[1].status === "rejected"
+      ) {
+        console.error(
+          `Deleteion failed: ${response[0].reason}, ${response[1].reason}`
         );
       }
-      const videoDeletion = await deleteFile(videoPublicId, "video");
-      if (videoDeletion instanceof ApiError)
-        throw new ApiError(
-          videoDeletion.statusCode,
-          videoDeletion.code,
-          videoDeletion.message
-        );
-
-      if (error instanceof ApiError) throw error;
-      throw new ApiError(
-        500,
-        "INTERNAL_SERVER_ERROR",
-        error?.message || "Database registration failed. Assets cleared.",
-        error?.errors || []
-      );
+      if (response[0].status === "rejected") {
+        console.error(`Thumbnai deleteion failed: ${response[0].reason}`);
+      }
+      if (response[1].status === "rejected") {
+        console.error(`Video deleteion failed: ${response[1].reason}`);
+      }
+      throw error;
     }
   }
 );
@@ -217,11 +206,11 @@ const updateThumbnail = asyncHandler(
       .select("thumbnail.publicId thumbnail.url")
       .lean();
 
-    if (!video?.thumbnail?.publicId || !video?.thumbnail?.url) {
+    if (!video) {
       throw new ApiError(
         404,
-        "THUMBNAIL_NOT_FOUND",
-        "Thumbnail not found to update"
+        "NOT_FOUND",
+        "Video not found to update thumbnail."
       );
     }
 
@@ -230,18 +219,10 @@ const updateThumbnail = asyncHandler(
       video.thumbnail.publicId
     );
 
-    if (thumbnail instanceof ApiError) {
-      throw new ApiError(
-        thumbnail.statusCode,
-        thumbnail.code,
-        thumbnail.message
-      );
-    }
-
     const updatedVideo = await Video.findOneAndUpdate(
       {
         _id: videoId,
-        owner: req.user!._id,
+        owner: req.user._id,
       },
       {
         $set: {
@@ -288,23 +269,28 @@ const deleteVideo = asyncHandler(
       throw new ApiError(404, "NOT_FOUND", "Video not found");
     }
 
-    const deleteThumbnail = await deleteFile(video.thumbnail.publicId);
+    const response = await Promise.allSettled([
+      deleteFile(video.thumbnail.publicId),
+      deleteFile(video.videoFile.publicId, "video"),
+    ]);
+    const failedDeletions = response
+      .filter((result) => result.status === "rejected")
+      .map((result) => {
+        console.log("Deletion failed: ", result.reason);
+        return result.reason;
+      });
 
-    if (deleteThumbnail instanceof ApiError) {
-      throw new ApiError(
-        deleteThumbnail.statusCode,
-        deleteThumbnail.code,
-        deleteThumbnail.message
+    if (failedDeletions.length > 0) {
+      const hasClientError = failedDeletions.some(
+        (err) => err.statusCode === 400
       );
-    }
-
-    const deleteVideo = await deleteFile(video.videoFile.publicId, "video");
-
-    if (deleteVideo instanceof ApiError) {
       throw new ApiError(
-        deleteVideo.statusCode,
-        deleteVideo.code,
-        deleteVideo.message
+        hasClientError ? 400 : 502,
+        hasClientError
+          ? "ASSET_DELETION_MALFORMED"
+          : "STORAGE_SERVICE_UNAVAILABLE",
+        "Video deletion aborted due to asset clearance failure.",
+        failedDeletions
       );
     }
 
@@ -466,7 +452,6 @@ const getAllVideos = asyncHandler(
     const { page, cursor, searchText } = req.query;
     const limit = 15;
     const vectorLimit = page ? page * limit : limit;
-    const skipCount = page ? (page - 1) * limit : 0;
     const pipeline: any[] = [];
 
     if (cursor && !mongoose.Types.ObjectId.isValid(cursor)) {
@@ -480,27 +465,16 @@ const getAllVideos = asyncHandler(
     if (searchText) {
       const queryVector = await getVectorEmbedding(searchText as string);
 
-      if (queryVector instanceof ApiError) {
-        throw new ApiError(
-          queryVector.statusCode,
-          queryVector.code,
-          queryVector.message
-        );
-      }
-
-      pipeline.push(
-        {
-          $vectorSearch: {
-            index: "video_title_index",
-            path: "title_embedding",
-            queryVector: queryVector,
-            numCandidates: vectorLimit * 10,
-            limit: vectorLimit,
-            filter: { isPublished: { $eq: true } },
-          },
+      pipeline.push({
+        $vectorSearch: {
+          index: "video_title_index",
+          path: "title_embedding",
+          queryVector: queryVector,
+          numCandidates: vectorLimit * 10,
+          limit: vectorLimit,
+          filter: { isPublished: { $eq: true } },
         },
-        { $skip: skipCount }
-      );
+      });
     } else {
       if (!cursor) {
         pipeline.push(
@@ -562,7 +536,7 @@ const getAllVideos = asyncHandler(
       response.hasNextPage = areVideosLeft;
     }
 
-    return res
+    res
       .status(200)
       .json(new ApiResponse(200, response, "Videos fetched successfully"));
   }
@@ -602,7 +576,7 @@ const getSuggestions = asyncHandler(
       },
     ]);
 
-    if (!suggestions) {
+    if (!suggestions.length) {
       return res
         .status(200)
         .json(new ApiResponse(200, [], "No suggestions found"));
