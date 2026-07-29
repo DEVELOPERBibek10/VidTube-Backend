@@ -5,7 +5,7 @@ import type { Types } from "mongoose";
 
 export interface TypedRequest<
   TBody = any,
-  TFiles = any,
+  TFiles = Express.Multer.File | Express.Multer.File[],
   TParams = ParamsDictionary,
 > extends Omit<Request, "body" | "files" | "params"> {
   body: TBody;
