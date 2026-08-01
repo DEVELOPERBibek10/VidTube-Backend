@@ -12,7 +12,7 @@ class WatchHistoryService {
     await WatchHistory.findOneAndUpdate(
       { user: userId, video: videoId },
       { $set: { watchTime, watchedAt: Date.now() } },
-      { upsert: true, new: true }
+      { upsert: true, new: true, runValidators: true }
     );
   }
 
@@ -89,7 +89,7 @@ class WatchHistoryService {
     const history = await WatchHistory.aggregate(pipeline);
 
     if (history.length === 0) {
-      throw new ApiError(404, "NOT_FOUND", "User's watch history not found");
+      return [];
     }
 
     const hasNextPage = history.length > limit;
