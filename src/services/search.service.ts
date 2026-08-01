@@ -99,7 +99,7 @@ class SearchService {
         },
       },
     ]);
-    if (!result) throw new ApiError(404, "NOT_FOUND", "Users not found.");
+    if (!result) return [];
     const areVideosLeft = result.length > limit;
     const users = result.slice(0, limit);
     let response: {
@@ -193,7 +193,7 @@ class SearchService {
         },
       ]);
       if (videos.length === 0) {
-        throw new ApiError(404, "NOT_FOUND", "Videos not found");
+        return [];
       }
       videoIds = videos.map((video) => String(video._id));
       const pipeline = redisClient
