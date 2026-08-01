@@ -15,7 +15,7 @@ class UserService {
         },
       },
       { new: true, runValidators: true }
-    );
+    ).lean();
 
     if (!updatedUser) {
       throw new ApiError(404, "NOT_FOUND", "User not found");
@@ -40,7 +40,7 @@ class UserService {
         },
       },
       { new: true }
-    );
+    ).lean();
 
     if (!updatedUser) {
       throw new ApiError(404, "NOT_FOUND", "User not found");
@@ -65,7 +65,7 @@ class UserService {
         },
       },
       { new: true }
-    );
+    ).lean();
 
     if (!updatedUser) {
       throw new ApiError(404, "NOT_FOUND", "User not found");
@@ -130,25 +130,26 @@ class UserService {
           isSubscribed: 1,
           avatar: {
             url: 1,
+            publicId: 1,
           },
           coverImage: {
             url: 1,
+            publicId: 1,
           },
           email: 1,
         },
       },
     ]);
 
-    if (channel.length === 0) {
-      throw new ApiError(404, "NOT_FOUND", "Channel does not exist!");
+    if (channel && channel.length > 0) {
+      await redisClient.set(
+        `user:profile:${channel[0]._id}`,
+        JSON.stringify(channel[0]),
+        "PX",
+        21600
+      );
     }
-    await redisClient.set(
-      `user:profile:${channel[0]._id}`,
-      JSON.stringify(channel[0]),
-      "PX",
-      21600
-    );
-    return channel[0];
+    return channel[0] || null;
   }
 }
 
