@@ -1,4 +1,4 @@
-import { Document, Types } from "mongoose";
+import { Types } from "mongoose";
 
 export interface IUser {
   username: string;
@@ -8,7 +8,7 @@ export interface IUser {
     url: string;
     publicId: string;
   };
-  coverImage?: {
+  coverImage: {
     url: string;
     publicId: string;
   };
@@ -25,4 +25,4 @@ export interface IUserMethods {
   generateRefreshToken(): string;
 }
 
-export interface IUserDocument extends IUser, IUserMethods, Document {}
+export interface IUserDocument extends IUser, IUserMethods {}
