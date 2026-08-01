@@ -1,7 +1,7 @@
 import type { Document } from "mongoose";
 import type mongoose from "mongoose";
 
-export interface IVideo extends Document {
+export interface IVideo {
   videoFile: {
     url: string;
     publicId: string;
