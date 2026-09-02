@@ -11,19 +11,33 @@ import type {
   UserParamSchema,
   ChangePasswordSchema,
   UpdateUserSchema,
+  GetUserSuggestionsSchema,
+  UserSearchQuerySchema,
 } from "../validators/user.validator.js";
 import {
   accessTokenOptions,
   refreshTokenOptions,
 } from "../constants/cookieOption.js";
-import { authService } from "../services/auth.service.js";
-import { userService } from "../services/users.service.js";
+import {
+  register,
+  login,
+  logout,
+  renewAccessToken,
+  changePassword,
+} from "../services/auth.service.js";
+import {
+  updateInfo,
+  updateProfileImage,
+  updateCover,
+  getProfile,
+} from "../services/users.service.js";
+import { userSearch, userSuggestions } from "../services/search.service.js";
 
 const registerUser = asyncHandler(
   async (req: TypedRequest<RegisterUserSchema>, res: Response) => {
     const { fullName, email, username, password } = req.body;
 
-    const createdUser = authService.registerUser({
+    const createdUser = await register({
       fullName,
       email,
       username,
@@ -39,7 +53,7 @@ const registerUser = asyncHandler(
 const loginUser = asyncHandler(
   async (req: TypedRequest<LoginUserSchema>, res: Response) => {
     const { email, password } = req.body;
-    const existingUser = await authService.loginUser({ email, password });
+    const existingUser = await login({ email, password });
 
     return res
       .status(200)
@@ -54,7 +68,7 @@ const loginUser = asyncHandler(
 const logoutUser = asyncHandler(async (req: Request, res: Response) => {
   const incomingRefreshToken = req.cookies?.refreshToken;
 
-  await authService.logoutUser(incomingRefreshToken);
+  await logout(incomingRefreshToken);
 
   return res
     .status(200)
@@ -75,7 +89,7 @@ const refreshAccessToken = asyncHandler(
       );
     }
     const { accessToken, newRefreshToken } =
-      await authService.refreshAccessToken(incomingRefreshToken);
+      await renewAccessToken(incomingRefreshToken);
     return res
       .status(200)
       .cookie("accessToken", accessToken, accessTokenOptions)
@@ -120,7 +134,7 @@ const changeCurrentPassword = asyncHandler(
   async (req: AuthTypedRequest<ChangePasswordSchema>, res: Response) => {
     const { oldPassword, newPassword } = req.body;
 
-    await authService.changeCurrentPassword(req.user._id, {
+    await changePassword(req.user._id, {
       oldPassword,
       newPassword,
     });
@@ -137,7 +151,7 @@ const updateDetails = asyncHandler(
   async (req: AuthTypedRequest<UpdateUserSchema>, res: Response) => {
     const { fullName } = req.body;
 
-    const updatedUser = await userService.updateDetails(req.user._id, fullName);
+    const updatedUser = await updateInfo(req.user._id, fullName);
 
     return res
       .status(200)
@@ -159,7 +173,7 @@ const updateAvatar = asyncHandler(
       );
     }
 
-    const updatedUser = await userService.updateAvatar(
+    const updatedUser = await updateProfileImage(
       avatarLocalFile,
       req.user._id,
       req.user.avatar.publicId
@@ -178,7 +192,7 @@ const updateCoverImage = asyncHandler(
     if (!coverImageLocalFile)
       throw new ApiError(400, "Cover image is required.");
 
-    const updatedUser = await userService.updateCoverImage(
+    const updatedUser = await updateCover(
       coverImageLocalFile,
       req.user._id,
       req.user.coverImage.publicId
@@ -196,11 +210,52 @@ const getUserChannelProfile = asyncHandler(
   async (req: AuthTypedRequest<any, any, UserParamSchema>, res: Response) => {
     const { username } = req.params;
 
-    const channel = await userService.getUserProfile(username, req.user._id);
+    const channel = await getProfile(username, req.user._id);
 
     return res
       .status(200)
       .json(new ApiResponse(200, channel, "User channel fetched sucessfully!"));
+  }
+);
+
+const getUserSearchSuggestions = asyncHandler(
+  async (
+    req: AuthTypedRequest<null, null, GetUserSuggestionsSchema>,
+    res: Response
+  ) => {
+    const { username } = req.params;
+
+    const suggestions = await userSuggestions(username);
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          suggestions,
+          "User suggestions fetched successfully"
+        )
+      );
+  }
+);
+
+const searchUsers = asyncHandler(
+  async (
+    req: AuthTypedRequest<null, null, UserSearchQuerySchema>,
+    res: Response
+  ) => {
+    const { username, searchToken } = req.query;
+    const users = await userSearch(
+      req.user._id,
+      username as string | undefined,
+      searchToken as string | undefined
+    );
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, users, "User search results fetched successfully")
+      );
   }
 );
 
@@ -215,4 +270,6 @@ export {
   updateAvatar,
   updateCoverImage,
   getUserChannelProfile,
+  getUserSearchSuggestions,
+  searchUsers,
 };
