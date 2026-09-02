@@ -9,7 +9,6 @@ import { redisClient } from "../db/redis.js";
 import { WatchHistory } from "../models/watchHistory.model.js";
 import { pageinationHelper } from "../utils/paginationHelper.js";
 import type { MongoId } from "../types/id.js";
-import { is } from "zod/v4/locales";
 
 async function getSignature() {
   const folder = "vidtube/videos";
