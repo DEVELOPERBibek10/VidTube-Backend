@@ -1,16 +1,16 @@
 import type { MulterError } from "multer";
 import { ApiError } from "./ApiError.js";
-import mongoose, { Error as MongooseError } from "mongoose";
+import { mongo, Error as MongooseError } from "mongoose";
 
 export const handleMongoDuplicateKey = (
-  err: mongoose.mongo.MongoServerError
+  err: mongo.MongoServerError
 ): ApiError => {
   let duplicatedFields: string[] = [];
   if (err.keyValue && typeof err.keyValue === "object") {
     duplicatedFields = Object.keys(err.keyValue);
   } else {
     const match = (err.message || "").match(/index:\s+([\w.]+?)_/i);
-    if (match && match[1]) duplicatedFields = [match[1]];
+    if (match && match.length !== 0 && match[1]) duplicatedFields = [match[1]];
   }
   if (duplicatedFields.length === 0) {
     return new ApiError(
