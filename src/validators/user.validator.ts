@@ -71,6 +71,43 @@ export const changePasswordSchema = z.object({
       .min(8, { error: "Password must be at least 8 characters" }),
   }),
 });
+
+export const getUserSuggestionsSchema = z.object({
+  query: z.object({
+    username: z
+      .string()
+      .trim()
+      .min(3, { error: "Username must be at least 3 characters" })
+      .max(20, { error: "Username cannot be more than 20 characters." }),
+  }),
+});
+
+export const userSearchQuerySchema = z.object({
+  query: z
+    .object({
+      username: z
+        .string()
+        .trim()
+        .min(3, { error: "Query must be at least 3 characters." })
+        .max(50, { error: "Query cannot exceed 50 characters." })
+        .optional(),
+      searchToken: z
+        .string()
+        .trim()
+        .min(1, { error: "Query hash cannot be empty." })
+        .optional(),
+    })
+    .refine((data) => data.username || data.searchToken, {
+      message: "You must provide either a username or a searchToken.",
+    }),
+});
+
+export type GetUserSuggestionsSchema = z.infer<
+  typeof getUserSuggestionsSchema
+>["query"];
+export type UserSearchQuerySchema = z.infer<
+  typeof userSearchQuerySchema
+>["query"];
 export type RegisterUserSchema = z.infer<typeof registerSchema>["body"];
 export type LoginUserSchema = z.infer<typeof loginSchema>["body"];
 export type UpdateUserSchema = z.infer<typeof updateUserDetailSchema>["body"];
