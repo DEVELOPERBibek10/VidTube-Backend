@@ -16,6 +16,7 @@ const getVectorEmbedding = async (searchQuery: string) => {
     });
 
     if (response.status !== 200) {
+      console.error("Error in AI service:", response.status, response.data);
       throw new ApiError(
         response.status,
         "AI_SERVICE_ERROR",
@@ -24,6 +25,7 @@ const getVectorEmbedding = async (searchQuery: string) => {
     }
     return response.data;
   } catch (error) {
+    console.error("Error in AI service:", error);
     throw error;
   }
 };
