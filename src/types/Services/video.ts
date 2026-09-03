@@ -1,9 +1,8 @@
-import type { Types } from "mongoose";
 import type { VideoUploadSchema } from "../../validators/video.validator.js";
-import type { RequireAtLeastOne } from "../../utils/requiredAtLeasetOne.js";
+import type { MongoId } from "../id.js";
 
 export interface VideoUpload extends VideoUploadSchema {
-  owner: string | Types.ObjectId;
+  owner: MongoId;
   thumbnailLocalPath: string;
 }
 
@@ -12,5 +11,3 @@ export interface VideoUpdate {
   description?: string;
   isPublished?: boolean;
 }
-
-export type UpdateConfigWithRequired = RequireAtLeastOne<VideoUpdate>;
