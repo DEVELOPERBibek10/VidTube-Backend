@@ -1,7 +1,7 @@
-import type { Types } from "mongoose";
+import type { MongoId } from "../id.js";
 
 export type CurrentUser = {
-  id: string | Types.ObjectId;
+  id: MongoId;
   fullName: string;
   username: string;
   email: string;
