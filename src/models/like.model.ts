@@ -29,5 +29,5 @@ likeSchema.index(
   }
 );
 
-likeSchema.index({ likable: 1, likeType: 1 });
+likeSchema.index({ likable: 1, likeableType: 1 });
 export const Like = mongoose.model("Like", likeSchema);
