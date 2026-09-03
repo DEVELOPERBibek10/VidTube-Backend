@@ -1,4 +1,6 @@
+import { Types } from "mongoose";
 import { z } from "zod";
+import { validateId } from "../utils/validateId.js";
 
 export const videoRequestSchema = z.object({
   body: z.object({
@@ -66,33 +68,63 @@ export const updateVideoParamsSchema = z.object({
     videoId: z
       .string()
       .trim()
-      .min(1, { error: "Video Id is required." })
-      .max(24, { error: "The provided video ID is invalid." }),
+      .refine((value) => validateId(value), {
+        message: "Invalid videoId",
+      }),
   }),
 });
 
 export const videoQuerySchema = z.object({
   query: z.object({
-    page: z
-      .preprocess(
-        (val) => (val === "" ? undefined : val),
-        z.coerce.number().min(1).default(1)
-      )
-      .optional(),
-    cursor: z
+    videoId: z
       .string()
       .trim()
-      .min(1, { error: "cursor is required." })
-      .max(24, { error: "The provided cursor is invalid." })
+      .refine((value) => validateId(value), {
+        message: "Invalid videoId",
+      })
       .optional(),
-    searchText: z
+    userId: z
       .string()
       .trim()
-      .max(50, {
-        error: "Search Text cannot exceed 50 characters",
+      .refine((value) => validateId(value), {
+        message: "Invalid userId",
       })
       .optional(),
   }),
+});
+
+export const getSuggestionsSchema = z.object({
+  query: z.object({
+    title: z
+      .string()
+      .trim()
+      .max(50, { error: "Search query cannot exceed 50 characters." }),
+  }),
+});
+
+const videoSearchQuerySchema = z.object({
+  query: z
+    .object({
+      searchQuery: z
+        .string()
+        .trim()
+        .max(50, { error: "Search query cannot exceed 50 characters." })
+        .optional(),
+      queryHash: z
+        .string()
+        .trim()
+        .max(32, { error: "Query hash cannot exceed 32 characters." })
+        .regex(/^[a-f0-9]+$/, {
+          message: "Query hash must be a valid hash.",
+        })
+        .optional(),
+      page: z.coerce
+        .number({ message: "Page must be a valid number." })
+        .positive({ message: "Page must be a positive integer." }),
+    })
+    .refine((data) => data.searchQuery || data.queryHash, {
+      message: "You must provide either a search query or a query hash.",
+    }),
 });
 
 export type VideoUploadSchema = z.infer<typeof videoRequestSchema>["body"];
@@ -100,5 +132,10 @@ export type UpdateVideoSchema = z.infer<typeof updateVideoSchema>["body"];
 export type UpdateVideoParamsSchema = z.infer<
   typeof updateVideoParamsSchema
 >["params"];
-``;
 export type VideoQuerySchema = z.infer<typeof videoQuerySchema>["query"];
+export type GetSuggestionsSchema = z.infer<
+  typeof getSuggestionsSchema
+>["query"];
+export type VideoSearchQuerySchema = z.infer<
+  typeof videoSearchQuerySchema
+>["query"];
