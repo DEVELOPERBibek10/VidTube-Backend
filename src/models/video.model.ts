@@ -46,6 +46,14 @@ const videoSchema = new Schema<IVideo>(
       type: Schema.Types.ObjectId,
       ref: "User",
     },
+    likes: {
+      type: Number,
+      default: 0,
+    },
+    comments: {
+      type: Number,
+      default: 0,
+    },
     title_embedding: {
       type: [Number],
       default: [],
