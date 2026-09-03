@@ -11,10 +11,14 @@ const commentSchema = new Schema<IComment>(
       type: Schema.Types.ObjectId,
       ref: "Video",
     },
-    parentComment: {
+    parentId: {
       type: Schema.Types.ObjectId,
       default: null,
       ref: "Comment",
+    },
+    likes: {
+      type: Number,
+      default: 0,
     },
     owner: {
       type: Schema.Types.ObjectId,
