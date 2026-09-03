@@ -1,4 +1,3 @@
-import type { Document } from "mongoose";
 import type mongoose from "mongoose";
 
 export interface IVideo {
@@ -16,6 +15,8 @@ export interface IVideo {
   views: number;
   isPublished: boolean;
   owner: mongoose.Types.ObjectId;
+  likes: number;
+  comments: number;
   title_embedding: number[];
   createdAt: Date;
   updatedAt: Date;
