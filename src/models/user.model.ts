@@ -53,6 +53,10 @@ const userSchema = new Schema<IUserDocument>(
       type: String,
       select: false,
     },
+    subscribers: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true }
 );
