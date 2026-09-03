@@ -15,6 +15,7 @@ export interface IUser {
   watchHistory: Types.ObjectId[] | [];
   password: string;
   refreshToken: string;
+  subscribers: number;
   createdAt: Date;
   updatedAt: Date;
 }
