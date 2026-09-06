@@ -4,7 +4,7 @@ import { Like } from "../models/like.model.js";
 import { likeableType as LikeableType } from "../types/Model/Like.js";
 import { Comment } from "../models/comment.model.js";
 import type { MongoId } from "../types/id.js";
-import { executeTransaction } from "../utils/executeTrasaction.js";
+import { executeTransaction } from "../utils/executeTransaction.js";
 
 type LikeToggleResponse = {
   success: boolean;
