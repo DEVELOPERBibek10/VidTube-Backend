@@ -2,43 +2,74 @@ import { Video } from "../models/video.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { Like } from "../models/like.model.js";
 import { likeableType as LikeableType } from "../types/Model/Like.js";
-import mongoose from "mongoose";
 import { Comment } from "../models/comment.model.js";
 import type { MongoId } from "../types/id.js";
+import { executeTransaction } from "../utils/executeTrasaction.js";
+
+type LikeToggleResponse = {
+  success: boolean;
+  likeStatus: "Liked" | "Unliked";
+  likeCount?: number;
+};
 
 async function likeToggle(
   userId: MongoId,
   likableId: MongoId,
   likableType: LikeableType
-) {
-  const like = await Like.deleteOne({
-    likedBy: userId,
-    likable: likableId,
-    likeableType: likableType,
-  });
+): Promise<LikeToggleResponse> {
+  return await executeTransaction(async (session) => {
+    const unlike = await Like.deleteOne({
+      likedBy: userId,
+      likable: likableId,
+      likeableType: likableType,
+    }).session(session);
 
-  if (like.deletedCount == 0) {
-    try {
-      await Like.create({
-        likedBy: userId,
-        likable: likableId,
-        likeableType: likableType,
-      });
-      return { success: true, likeStatus: "Liked" };
-    } catch (error) {
-      if (
-        error instanceof mongoose.mongo.MongoServerError &&
-        error.code === 11000
-      ) {
-        return { success: true, likeStatus: "Liked" };
-      }
-      throw error;
+    if (unlike.deletedCount == 0) {
+      await Like.create(
+        [
+          {
+            likedBy: userId,
+            likable: likableId,
+            likeableType: likableType,
+          },
+        ],
+        { session }
+      );
+      const target =
+        likableType === LikeableType.video
+          ? await Video.updateOne(
+              { _id: likableId },
+              { $inc: { likeCount: 1 } }
+            ).session(session)
+          : await Comment.updateOne(
+              { _id: likableId },
+              { $inc: { likeCount: 1 } }
+            ).session(session);
+
+      return {
+        success: true,
+        likeStatus: "Liked",
+        likeCount: target.modifiedCount,
+      };
+    } else {
+      const target =
+        likableType === LikeableType.video
+          ? await Video.updateOne(
+              { _id: likableId },
+              { $inc: { likeCount: -1 } }
+            ).session(session)
+          : await Comment.updateOne(
+              { _id: likableId },
+              { $inc: { likeCount: -1 } }
+            ).session(session);
+
+      return {
+        success: true,
+        likeStatus: "Unliked",
+        likeCount: target.modifiedCount,
+      };
     }
-  }
-  return {
-    success: true,
-    likeStatus: "Unliked",
-  };
+  });
 }
 
 async function toggleVideoLike(
