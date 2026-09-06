@@ -1,4 +1,4 @@
-import mongoose, { startSession } from "mongoose";
+import mongoose from "mongoose";
 import {
   MongoErrorLabel,
   MongoServerError,
@@ -22,7 +22,7 @@ export async function executeTransaction<T>(
   let lastError: any;
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    const session = await startSession();
+    const session = await mongoose.startSession();
     try {
       const result = await session.withTransaction(
         () => transactionFn(session),
@@ -36,7 +36,11 @@ export async function executeTransaction<T>(
       return result;
     } catch (error) {
       lastError = error;
-      if (error instanceof MongoServerError && isRetryableError(error)) {
+      if (
+        error instanceof MongoServerError &&
+        isRetryableError(error) &&
+        attempt < maxRetries
+      ) {
         console.log(
           `Transaction attempt ${attempt} failed, reason: ${error.message}, Retrying...`
         );
