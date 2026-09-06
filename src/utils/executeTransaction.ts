@@ -8,20 +8,20 @@ import {
 export async function executeTransaction<T>(
   transactionFn: (session: mongoose.ClientSession) => Promise<T>,
   options?: {
-    maxRetry?: number;
+    maxRetries?: number;
     retryDelay?: number;
     transactionOptions?: TransactionOptions;
   }
 ) {
   const {
-    maxRetry = 3,
+    maxRetries = 3,
     retryDelay = 1000,
     transactionOptions = {},
   } = options || {};
 
   let lastError: any;
 
-  for (let attempt = 1; attempt <= maxRetry; attempt++) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
     const session = await startSession();
     try {
       const result = await session.withTransaction(
@@ -37,7 +37,9 @@ export async function executeTransaction<T>(
     } catch (error) {
       lastError = error;
       if (error instanceof MongoServerError && isRetryableError(error)) {
-        console.log(`Transaction attempt ${attempt} failed, retrying...`);
+        console.log(
+          `Transaction attempt ${attempt} failed, reason: ${error.message}, Retrying...`
+        );
         await delay(retryDelay * attempt);
         continue;
       }
