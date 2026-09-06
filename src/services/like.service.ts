@@ -9,7 +9,7 @@ import { executeTransaction } from "../utils/executeTransaction.js";
 type LikeToggleResponse = {
   success: boolean;
   likeStatus: "Liked" | "Unliked";
-  likeCount?: number;
+  likeCount: number;
 };
 
 async function likeToggle(
