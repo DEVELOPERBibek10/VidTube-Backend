@@ -17,7 +17,7 @@ async function likeToggle(
   likableId: MongoId,
   likableType: LikeableType
 ): Promise<LikeToggleResponse> {
-  return await executeTransaction(async (session) => {
+  return await executeTransaction<LikeToggleResponse>(async (session) => {
     const unlike = await Like.deleteOne({
       likedBy: userId,
       likable: likableId,
