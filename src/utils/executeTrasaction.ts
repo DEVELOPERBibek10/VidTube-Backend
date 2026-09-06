@@ -24,12 +24,15 @@ export async function executeTransaction<T>(
   for (let attempt = 1; attempt <= maxRetry; attempt++) {
     const session = await startSession();
     try {
-      const result = await session.withTransaction(transactionFn, {
-        readPreference: "primary",
-        readConcern: { level: "snapshot" },
-        writeConcern: { w: "majority" },
-        ...transactionOptions,
-      });
+      const result = await session.withTransaction(
+        () => transactionFn(session),
+        {
+          readPreference: "primary",
+          readConcern: { level: "snapshot" },
+          writeConcern: { w: "majority" },
+          ...transactionOptions,
+        }
+      );
       return result;
     } catch (error) {
       lastError = error;
