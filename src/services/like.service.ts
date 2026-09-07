@@ -9,7 +9,6 @@ import { executeTransaction } from "../utils/executeTransaction.js";
 type LikeToggleResponse = {
   success: boolean;
   likeStatus: "Liked" | "Unliked";
-  likeCount: number;
 };
 
 async function likeToggle(
@@ -49,26 +48,23 @@ async function likeToggle(
       return {
         success: true,
         likeStatus: "Liked",
-        likeCount: target.modifiedCount,
-      };
-    } else {
-      const target =
-        likableType === LikeableType.video
-          ? await Video.updateOne(
-              { _id: likableId, likes: { $gt: 0 } },
-              { $inc: { likeCount: -1 } }
-            ).session(session)
-          : await Comment.updateOne(
-              { _id: likableId, likes: { $gt: 0 } },
-              { $inc: { likeCount: -1 } }
-            ).session(session);
-
-      return {
-        success: true,
-        likeStatus: "Unliked",
-        likeCount: target.modifiedCount,
       };
     }
+    const target =
+      likableType === LikeableType.video
+        ? await Video.updateOne(
+            { _id: likableId, likes: { $gt: 0 } },
+            { $inc: { likeCount: -1 } }
+          ).session(session)
+        : await Comment.updateOne(
+            { _id: likableId, likes: { $gt: 0 } },
+            { $inc: { likeCount: -1 } }
+          ).session(session);
+
+    return {
+      success: true,
+      likeStatus: "Unliked",
+    };
   });
 }
 
