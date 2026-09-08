@@ -4,8 +4,8 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ZodType } from "zod";
 import type { AuthTypedRequest, TypedRequest } from "../types/request.js";
 import { ApiError } from "../utils/ApiError.js";
-import { type ParamsDictionary } from "express-serve-static-core";
-import { type ParsedQs } from "qs";
+import type { Params } from "express-serve-static-core";
+import type { ParsedQs } from "qs";
 
 type RequestSchema = ZodObject<{
   body?: ZodType;
@@ -23,7 +23,7 @@ export const validation = (schema: RequestSchema) =>
           query: req.query,
         });
         req.body = parseData.body as Record<string, any>;
-        req.params = parseData.params as ParamsDictionary;
+        req.params = parseData.params as Params;
         req.query = parseData.query as ParsedQs;
         next();
       } catch (error) {
