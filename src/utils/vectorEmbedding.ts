@@ -12,6 +12,9 @@ const getVectorEmbedding = async (searchQuery: string) => {
       },
       body: JSON.stringify({
         input: `${searchQuery}`,
+        options: {
+          wait_for_model: true,
+        },
         parameters: {
           normalize: true,
         },
