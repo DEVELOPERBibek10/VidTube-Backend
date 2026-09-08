@@ -297,7 +297,7 @@ async function getVideo(
         duration: 1,
         views: 1,
         creator: 1,
-        videoLikeSchema: 1,
+        likes: 1,
         comments: 1,
         subscribers: 1,
         isLiked: 1,
