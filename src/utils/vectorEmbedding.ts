@@ -12,6 +12,9 @@ const getVectorEmbedding = async (searchQuery: string) => {
       },
       body: JSON.stringify({
         input: `${searchQuery}`,
+        parameters: {
+          normalize: true,
+        },
       }),
     });
 
@@ -23,7 +26,7 @@ const getVectorEmbedding = async (searchQuery: string) => {
         "Unknown error occured in AI service"
       );
     }
-    return response.data;
+    return Array.isArray(response.data[0]) ? response.data[0] : response.data;
   } catch (error) {
     console.error("Error in AI service:", error);
     throw error;
