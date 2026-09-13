@@ -21,4 +21,4 @@ async function server() {
     process.exit(1);
   }
 }
-server();
+await server();
