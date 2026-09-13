@@ -8,10 +8,11 @@ import type {
 } from "../types/Services/auth.js";
 import { ApiError } from "../utils/ApiError.js";
 import jwt from "jsonwebtoken";
+import type { MongoId } from "../types/id.js";
 
-async function generateAccessAndRefreshToken(userId: string | Types.ObjectId) {
+async function generateAccessAndRefreshToken(userId: MongoId) {
   try {
-    const user = await User.findById(userId)!;
+    const user = await User.findById(userId);
     const accessToken = user!.generateAccessToken();
     const refreshToken = user!.generateRefreshToken();
 
