@@ -1,13 +1,14 @@
 import type { MulterError } from "multer";
 import { ApiError } from "./ApiError.js";
-import { mongo, Error as MongooseError } from "mongoose";
+import { type mongo, type Error as MongooseError } from "mongoose";
+import type { HttpError } from "http-errors";
 
 export const handleMongoDuplicateKey = (
   err: mongo.MongoServerError
 ): ApiError => {
   let duplicatedFields: string[] = [];
   if (err.keyValue && typeof err.keyValue === "object") {
-    duplicatedFields = Object.keys(err.keyValue);
+    duplicatedFields = Object.keys(err.keyValue as object);
   } else {
     const match = (err.message || "").match(/index:\s+([\w.]+?)_/i);
     if (match && match.length !== 0 && match[1]) duplicatedFields = [match[1]];
@@ -48,7 +49,7 @@ export const handleCastError = (err: MongooseError.CastError): ApiError => {
   );
 };
 
-export const handleParseError = (err: any): ApiError => {
+export const handleParseError = (err: HttpError): ApiError => {
   if (err.type === "entity.parse.failed") {
     return new ApiError(400, "JSON_PARSE_ERROR", "Invalid JSON body provided");
   }
