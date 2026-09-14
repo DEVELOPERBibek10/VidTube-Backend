@@ -26,4 +26,7 @@ const watchHistorySchema = new Schema<WatchHistoryDocument>({
 watchHistorySchema.index({ user: 1, video: 1 }, { unique: true });
 watchHistorySchema.index({ user: 1, watchedAt: -1 });
 
-export const WatchHistory = mongoose.model<WatchHistoryDocument>("WatchHistory", watchHistorySchema);
+export const WatchHistory = mongoose.model<WatchHistoryDocument>(
+  "WatchHistory",
+  watchHistorySchema
+);

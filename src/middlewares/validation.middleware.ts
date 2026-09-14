@@ -45,7 +45,9 @@ export const validation = (schema: RequestSchema) =>
           Record<RequestSection, ZodType>
         >;
         const unexpectedSections = requestSections
-          .filter((section) => !schemaShape[section] && request[section] !== null)
+          .filter(
+            (section) => !schemaShape[section] && request[section] !== null
+          )
           .map((section) => ({
             field: section,
             message: `${section} is not accepted by this route.`,
@@ -71,8 +73,8 @@ export const validation = (schema: RequestSchema) =>
         req.params = (parseData.params ?? null) as Params;
         req.query = (parseData.query ?? null) as ParsedQs;
         req.file = (parseData.file ?? null) as Express.Multer.File | null;
-        req.files = (parseData.files ??
-          null) as Express.Multer.File[] | Record<string, Express.Multer.File[]> | null;
+        req.files = (parseData.files ?? null) as
+          Express.Multer.File[] | Record<string, Express.Multer.File[]> | null;
         next();
       } catch (error) {
         if (error instanceof ZodError) {

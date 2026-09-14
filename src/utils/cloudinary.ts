@@ -70,7 +70,10 @@ const uploadFile = async (
   }
 };
 
-const deleteFile = async (publicId: string, resourceType: string = "image"): Promise<void> => {
+const deleteFile = async (
+  publicId: string,
+  resourceType: string = "image"
+): Promise<void> => {
   try {
     await cloudinary.uploader.destroy(publicId, {
       resource_type: resourceType,

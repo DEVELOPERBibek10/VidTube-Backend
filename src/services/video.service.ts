@@ -1,6 +1,10 @@
 import { v2 as cloudinary } from "cloudinary";
 import { ApiError } from "../utils/ApiError.js";
-import type { VideoUpdate, VideoUpload, VideoDocument } from "../types/Services/video.js";
+import type {
+  VideoUpdate,
+  VideoUpload,
+  VideoDocument,
+} from "../types/Services/video.js";
 import { deleteFile, uploadFile } from "../utils/cloudinary.js";
 import { Video } from "../models/video.model.js";
 import type { Types } from "mongoose";
@@ -196,7 +200,9 @@ async function removeVideo(
     deleteFile(video.videoFile.publicId, "video"),
   ]);
   const rejectedDeletions = response
-    .filter((result): result is PromiseRejectedResult => result.status === "rejected")
+    .filter(
+      (result): result is PromiseRejectedResult => result.status === "rejected"
+    )
     .map((result) => {
       const reason: unknown = result.reason;
       return reason;
@@ -225,7 +231,10 @@ async function removeVideo(
   });
 }
 
-async function getVideo(videoId: MongoId, userId: MongoId): Promise<VideoDocument> {
+async function getVideo(
+  videoId: MongoId,
+  userId: MongoId
+): Promise<VideoDocument> {
   const cachedVideo = await redisClient.get(`video:${videoId as string}`);
   if (cachedVideo) {
     return JSON.parse(cachedVideo) as VideoDocument;
