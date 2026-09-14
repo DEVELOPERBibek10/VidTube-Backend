@@ -19,7 +19,7 @@ export async function executeTransaction<T>(
     transactionOptions = {},
   } = options || {};
 
-  let lastError: any;
+  let lastError: unknown = null;
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     const session = await mongoose.startSession();
@@ -34,7 +34,7 @@ export async function executeTransaction<T>(
         }
       );
       return result;
-    } catch (error) {
+    } catch (error: unknown) {
       lastError = error;
       if (
         error instanceof MongoServerError &&
