@@ -1,12 +1,11 @@
-import type { Types } from "mongoose";
 import { WatchHistory } from "../models/watchHistory.model.js";
 import mongoose from "mongoose";
 import type { MongoId } from "../types/id.js";
 import { pageinationHelper } from "../utils/paginationHelper.js";
 
 async function createHistory(
-  userId: string | Types.ObjectId,
-  videoId: string | Types.ObjectId,
+  userId: MongoId,
+  videoId: MongoId,
   watchTime: number
 ) {
   await WatchHistory.findOneAndUpdate(
@@ -16,10 +15,7 @@ async function createHistory(
   );
 }
 
-async function getWatchHistory(
-  userId: string | Types.ObjectId,
-  historyId?: MongoId | null
-) {
+async function getWatchHistory(userId: MongoId, historyId?: MongoId | null) {
   const pipeline = [];
   const limit = 15;
 
@@ -91,11 +87,11 @@ async function getWatchHistory(
   return pageinationHelper(history, limit, false);
 }
 
-async function deleteHistory(historyId: string | Types.ObjectId) {
+async function deleteHistory(historyId: MongoId) {
   await WatchHistory.findOneAndDelete({ _id: historyId });
 }
 
-async function clearHistory(userId: string | Types.ObjectId) {
+async function clearHistory(userId: MongoId) {
   await WatchHistory.deleteMany({ user: userId });
 }
 
