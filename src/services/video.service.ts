@@ -1,6 +1,6 @@
 import { v2 as cloudinary } from "cloudinary";
 import { ApiError } from "../utils/ApiError.js";
-import type { VideoUpdate, VideoUpload } from "../types/Services/video.js";
+import type { VideoUpdate, VideoUpload, VideoDocument } from "../types/Services/video.js";
 import { deleteFile, uploadFile } from "../utils/cloudinary.js";
 import { Video } from "../models/video.model.js";
 import type { Types } from "mongoose";
@@ -9,8 +9,9 @@ import { redisClient } from "../db/redis.js";
 import { WatchHistory } from "../models/watchHistory.model.js";
 import { pageinationHelper } from "../utils/paginationHelper.js";
 import type { MongoId } from "../types/id.js";
+import type { WatchHistoryDocument } from "../types/Services/watchHistory.js";
 
-async function getSignature() {
+function getSignature() {
   const folder = "vidtube/videos";
   const timestamp = Math.round(new Date().getTime() / 1000);
 
@@ -75,7 +76,7 @@ async function upload(videoDoc: VideoUpload) {
     };
 
     return createdVideo;
-  } catch (error: any) {
+  } catch (error: unknown) {
     const response = await Promise.allSettled([
       deleteFile(thumbnail.public_id),
       deleteFile(videoPublicId, "video"),
@@ -180,8 +181,8 @@ async function reviseThumbnail(
 async function removeVideo(
   videoId: string | Types.ObjectId,
   owner: string | Types.ObjectId
-) {
-  const video = await Video.findById({
+): Promise<void> {
+  const video = await Video.findOne({
     _id: videoId,
     owner,
   });
@@ -194,17 +195,20 @@ async function removeVideo(
     deleteFile(video.thumbnail.publicId),
     deleteFile(video.videoFile.publicId, "video"),
   ]);
-  const failedDeletions = response
-    .filter((result) => result.status === "rejected")
+  const rejectedDeletions = response
+    .filter((result): result is PromiseRejectedResult => result.status === "rejected")
     .map((result) => {
-      console.log("Deletion failed: ", result.reason);
-      return result.reason;
+      const reason: unknown = result.reason;
+      return reason;
     });
+  const hasClientError = rejectedDeletions.some(
+    (reason) => reason instanceof ApiError && reason.statusCode === 400
+  );
+  const failedDeletions = rejectedDeletions.map((reason) =>
+    reason instanceof Error ? reason.message : String(reason)
+  );
 
   if (failedDeletions.length > 0) {
-    const hasClientError = failedDeletions.some(
-      (err) => err.statusCode === 400
-    );
     throw new ApiError(
       hasClientError ? 400 : 502,
       hasClientError
@@ -221,15 +225,12 @@ async function removeVideo(
   });
 }
 
-async function getVideo(
-  videoId: string | Types.ObjectId,
-  userId: string | Types.ObjectId
-) {
-  const cachedVideo = await redisClient.get(`video:${videoId}`);
+async function getVideo(videoId: MongoId, userId: MongoId): Promise<VideoDocument> {
+  const cachedVideo = await redisClient.get(`video:${videoId as string}`);
   if (cachedVideo) {
-    return JSON.parse(cachedVideo);
+    return JSON.parse(cachedVideo) as VideoDocument;
   }
-  const videoResult = Video.aggregate([
+  const video = await Video.aggregate<VideoDocument>([
     {
       $match: { _id: new mongoose.Types.ObjectId(videoId), isPublished: true },
     },
@@ -306,23 +307,27 @@ async function getVideo(
       },
     },
   ]);
-
-  const watchHistory = WatchHistory.findOne({ user: userId, video: videoId });
-
-  let [video, history] = await Promise.all([videoResult, watchHistory]);
+  const history: WatchHistoryDocument | null = await WatchHistory.findOne({
+    user: userId,
+    video: videoId,
+  });
 
   if (!video || video.length === 0) {
     throw new ApiError(404, "NOT_FOUND", "Video not found");
   }
 
   const videoDoc = video[0];
+  if (!videoDoc) {
+    throw new ApiError(404, "NOT_FOUND", "Video not found");
+  }
 
-  const response = {
+  const response: VideoDocument = {
     ...videoDoc,
+    _id: videoDoc._id,
     watchTime: history ? history.watchTime : null,
   };
   await redisClient.set(
-    `video:${videoDoc._id}`,
+    `video:${String(videoDoc._id)}`,
     JSON.stringify(response),
     "PX",
     21600
@@ -331,10 +336,18 @@ async function getVideo(
 }
 
 async function getEveryVideo(videoId?: MongoId, userId?: MongoId) {
-  const pipeline: any[] = [];
+  const pipeline = [];
   const limit = 15;
 
-  if (videoId) {
+  if (videoId && userId) {
+    pipeline.push({
+      $match: {
+        isPublished: true,
+        owner: new mongoose.Types.ObjectId(userId),
+        _id: { $lt: new mongoose.Types.ObjectId(videoId) },
+      },
+    });
+  } else if (videoId) {
     pipeline.push({
       $match: {
         isPublished: true,
@@ -346,14 +359,6 @@ async function getEveryVideo(videoId?: MongoId, userId?: MongoId) {
       $match: {
         isPublished: true,
         owner: new mongoose.Types.ObjectId(userId),
-      },
-    });
-  } else if (videoId && userId) {
-    pipeline.push({
-      $match: {
-        isPublished: true,
-        owner: new mongoose.Types.ObjectId(userId),
-        _id: { $lt: new mongoose.Types.ObjectId(videoId) },
       },
     });
   } else {
@@ -400,7 +405,7 @@ async function getEveryVideo(videoId?: MongoId, userId?: MongoId) {
     }
   );
 
-  const videos = await Video.aggregate(pipeline);
+  const videos = await Video.aggregate(pipeline as []);
 
   return pageinationHelper(videos, limit, false);
 }
