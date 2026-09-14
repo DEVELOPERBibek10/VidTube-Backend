@@ -12,11 +12,7 @@ type RequestSchema = ZodObject<{
   params?: ZodType;
   query?: ZodType;
   file?: ZodType;
-  files?: ZodType;
 }>;
-
-const requestSections = ["body", "params", "query", "file", "files"] as const;
-type RequestSection = (typeof requestSections)[number];
 
 function normalizeSection(value: unknown): unknown {
   if (value === undefined || value === null) return null;
@@ -29,52 +25,26 @@ export const validation = (schema: RequestSchema) =>
     async (
       req:
         | TypedRequest<Record<string, unknown>>
-        | AuthTypedRequest<Record<string, unknown>>,
+        | AuthTypedRequest<Record<string, unknown> | null>,
       _,
       next: NextFunction
     ) => {
       try {
-        const request = {
-          body: normalizeSection(req.body),
-          params: normalizeSection(req.params),
-          query: normalizeSection(req.query),
-          file: normalizeSection(req.file),
-          files: normalizeSection(req.files),
-        } satisfies Record<RequestSection, unknown>;
-        const schemaShape = schema.shape as Partial<
-          Record<RequestSection, ZodType>
-        >;
-        const unexpectedSections = requestSections
-          .filter(
-            (section) => !schemaShape[section] && request[section] !== null
-          )
-          .map((section) => ({
-            field: section,
-            message: `${section} is not accepted by this route.`,
-          }));
-
-        if (unexpectedSections.length > 0) {
-          throw new ApiError(
-            400,
-            "VALIDATION_ERROR",
-            unexpectedSections.map((issue) => issue.message).join(", "),
-            unexpectedSections
-          );
-        }
-
         const parseData = await schema.parseAsync({
-          body: schemaShape.body ? (request.body ?? {}) : undefined,
-          params: schemaShape.params ? (request.params ?? {}) : undefined,
-          query: schemaShape.query ? (request.query ?? {}) : undefined,
-          file: schemaShape.file ? request.file : undefined,
-          files: schemaShape.files ? (request.files ?? {}) : undefined,
+          body: req.body ?? {},
+          params: req.params ?? {},
+          query: req.query ?? {},
+          file: req.file ?? null,
         });
-        req.body = (parseData.body ?? null) as Record<string, unknown>;
-        req.params = (parseData.params ?? null) as Params;
-        req.query = (parseData.query ?? null) as ParsedQs;
-        req.file = (parseData.file ?? null) as Express.Multer.File | null;
-        req.files = (parseData.files ?? null) as
-          Express.Multer.File[] | Record<string, Express.Multer.File[]> | null;
+        req.body = normalizeSection(parseData.body) as Record<
+          string,
+          unknown
+        > | null;
+        req.params = normalizeSection(parseData.params) as Params;
+        req.query = normalizeSection(parseData.query) as ParsedQs;
+        req.file = normalizeSection(
+          parseData.file
+        ) as Express.Multer.File | null;
         next();
       } catch (error) {
         if (error instanceof ZodError) {
