@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-export const registerSchema = z.object({
-  body: z.object({
+export const registerSchema = z.strictObject({
+  body: z.strictObject({
     fullName: z
       .string()
       .trim()
@@ -27,8 +27,8 @@ export const registerSchema = z.object({
   }),
 });
 
-export const loginSchema = z.object({
-  body: z.object({
+export const loginSchema = z.strictObject({
+  body: z.strictObject({
     email: z
       .email()
       .toLowerCase()
@@ -41,8 +41,8 @@ export const loginSchema = z.object({
   }),
 });
 
-export const updateUserDetailSchema = z.object({
-  body: z.object({
+export const updateUserDetailSchema = z.strictObject({
+  body: z.strictObject({
     fullName: z
       .string()
       .trim()
@@ -51,8 +51,8 @@ export const updateUserDetailSchema = z.object({
   }),
 });
 
-export const userParamSchema = z.object({
-  params: z.object({
+export const userParamSchema = z.strictObject({
+  params: z.strictObject({
     username: z
       .string()
       .trim()
@@ -61,8 +61,8 @@ export const userParamSchema = z.object({
   }),
 });
 
-export const changePasswordSchema = z.object({
-  body: z.object({
+export const changePasswordSchema = z.strictObject({
+  body: z.strictObject({
     oldPassword: z
       .string()
       .min(8, { error: "Password must be at least 8 characters" }),
@@ -72,8 +72,8 @@ export const changePasswordSchema = z.object({
   }),
 });
 
-export const getUserSuggestionsSchema = z.object({
-  query: z.object({
+export const getUserSuggestionsSchema = z.strictObject({
+  query: z.strictObject({
     username: z
       .string()
       .trim()
@@ -82,9 +82,9 @@ export const getUserSuggestionsSchema = z.object({
   }),
 });
 
-export const userSearchQuerySchema = z.object({
+export const userSearchQuerySchema = z.strictObject({
   query: z
-    .object({
+    .strictObject({
       username: z
         .string()
         .trim()
