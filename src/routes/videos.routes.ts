@@ -5,6 +5,7 @@ import {
   getAllVideos,
   getSuggestions,
   getVideoSignature,
+  searchVideos,
   updateThumbnail,
   updateVideoDetails,
   uploadVideo,
@@ -15,11 +16,22 @@ import {
   updateVideoParamsSchema,
   updateVideoSchema,
   videoRequestSchema,
+  videoQuerySchema,
+  getSuggestionsSchema,
+  videoSearchQuerySchema,
+  type UpdateVideoParamsSchema,
+  type UpdateVideoSchema,
 } from "../validators/video.validator.js";
+import {
+  fileRequestSchema,
+  noRequestDataSchema,
+} from "../validators/request.validator.js";
 
 const videoRouter = Router();
 
-videoRouter.route("/signature").get(verifyJWT, getVideoSignature);
+videoRouter
+  .route("/signature")
+  .get(verifyJWT, validation(noRequestDataSchema), getVideoSignature);
 videoRouter
   .route("/upload")
   .post(
@@ -31,7 +43,7 @@ videoRouter
 videoRouter
   .route("/details/:videoId")
   .patch(
-    verifyJWT,
+    verifyJWT<UpdateVideoParamsSchema | UpdateVideoSchema>,
     validation(updateVideoParamsSchema),
     validation(updateVideoSchema),
     updateVideoDetails
@@ -39,15 +51,25 @@ videoRouter
 videoRouter
   .route("/thumbnail/:videoId")
   .patch(
-    verifyJWT,
+    verifyJWT<UpdateVideoParamsSchema>,
     validation(updateVideoParamsSchema),
     upload.single("thumbnail"),
+    validation(fileRequestSchema),
     updateThumbnail
   );
 videoRouter
   .route("/:videoId")
-  .delete(verifyJWT, validation(updateVideoParamsSchema), deleteVideo);
-videoRouter.route("").get(verifyJWT, getAllVideos);
-videoRouter.route("/search").get(verifyJWT, getSuggestions);
+  .delete(
+    verifyJWT<UpdateVideoParamsSchema>,
+    validation(updateVideoParamsSchema),
+    deleteVideo
+  );
+videoRouter.route("").get(verifyJWT, validation(videoQuerySchema), getAllVideos);
+videoRouter
+  .route("/suggestions")
+  .get(verifyJWT, validation(getSuggestionsSchema), getSuggestions);
+videoRouter
+  .route("/search")
+  .get(verifyJWT, validation(videoSearchQuerySchema), searchVideos);
 
 export default videoRouter;
