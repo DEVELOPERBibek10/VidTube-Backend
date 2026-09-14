@@ -1,5 +1,4 @@
 import type { Response } from "express";
-import { Types } from "mongoose";
 import {
   clearHistory,
   createHistory,
@@ -63,7 +62,7 @@ const removeHistoryItem = asyncHandler(
 );
 
 const removeAllHistory = asyncHandler(
-  async (req: AuthTypedRequest, res: Response) => {
+  async (req: AuthTypedRequest<null>, res: Response) => {
     await clearHistory(req.user._id);
     return res
       .status(200)
