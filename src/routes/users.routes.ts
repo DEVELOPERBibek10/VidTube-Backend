@@ -19,7 +19,12 @@ import {
   registerSchema,
   updateUserDetailSchema,
   userParamSchema,
+  type UpdateUserSchema,
 } from "../validators/user.validator.js";
+import {
+  fileRequestSchema,
+  noRequestDataSchema,
+} from "../validators/request.validator.js";
 
 const userRouter = Router();
 
@@ -29,17 +34,35 @@ userRouter.route("/login").post(validation(loginSchema), loginUser);
 userRouter.route("/refresh-token").post(refreshAccessToken);
 
 // secure route
-userRouter.route("/logout").post(verifyJWT, logoutUser);
-userRouter.route("/current-user").get(verifyJWT, getCurrentUser);
+userRouter
+  .route("/logout")
+  .post(verifyJWT, validation(noRequestDataSchema), logoutUser);
+userRouter
+  .route("/current-user")
+  .get(verifyJWT, validation(noRequestDataSchema), getCurrentUser);
 userRouter
   .route("/details")
-  .patch(verifyJWT, validation(updateUserDetailSchema), updateDetails);
+  .patch(
+    verifyJWT<UpdateUserSchema>,
+    validation(updateUserDetailSchema),
+    updateDetails
+  );
 userRouter
   .route("/avatar")
-  .patch(verifyJWT, upload.single("avatar"), updateAvatar);
+  .patch(
+    verifyJWT,
+    upload.single("avatar"),
+    validation(fileRequestSchema),
+    updateAvatar
+  );
 userRouter
   .route("/cover-image")
-  .patch(verifyJWT, upload.single("coverImage"), updateCoverImage);
+  .patch(
+    verifyJWT,
+    upload.single("coverImage"),
+    validation(fileRequestSchema),
+    updateCoverImage
+  );
 userRouter
   .route("/profile/:username")
   .get(verifyJWT, validation(userParamSchema), getUserChannelProfile);
