@@ -1,8 +1,9 @@
 import { z } from "zod";
 import { validateId } from "../utils/validateId.js";
+import { multerFileSchema } from "./file.validator.js";
 
 export const videoRequestSchema = z.strictObject({
-  file: z.unknown(),
+  file: multerFileSchema,
   body: z.strictObject({
     title: z
       .string()
@@ -128,6 +129,7 @@ export const videoSearchQuerySchema = z.strictObject({
 });
 
 export type VideoUploadSchema = z.infer<typeof videoRequestSchema>["body"];
+export type ThumbnailUploadSchema = z.infer<typeof videoRequestSchema>["file"];
 export type UpdateVideoSchema = z.infer<typeof updateVideoSchema>["body"];
 export type UpdateVideoParamsSchema = z.infer<
   typeof updateVideoParamsSchema
