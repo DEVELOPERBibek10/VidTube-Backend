@@ -10,11 +10,11 @@ class ApiResponse<T> {
     message = "Success",
     code = "SUCCESS"
   ) {
-    ((this.statusCode = statusCode),
-      (this.code = code),
-      (this.data = data),
-      (this.message = message),
-      (this.success = true));
+    this.statusCode = statusCode;
+    this.code = code;
+    this.data = data;
+    this.message = message;
+    this.success = true;
   }
 }
 
