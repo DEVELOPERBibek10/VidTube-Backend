@@ -1,9 +1,8 @@
-import { Types } from "mongoose";
 import z from "zod";
 import { validateId } from "../utils/validateId.js";
 
-const videoLikeSchema = z.object({
-  params: z.object({
+const videoLikeSchema = z.strictObject({
+  params: z.strictObject({
     videoId: z
       .string()
       .trim()
@@ -11,8 +10,8 @@ const videoLikeSchema = z.object({
   }),
 });
 
-const commentLikeSchema = z.object({
-  params: z.object({
+const commentLikeSchema = z.strictObject({
+  params: z.strictObject({
     commentId: z
       .string()
       .trim()
