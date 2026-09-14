@@ -20,7 +20,7 @@ async function getWatchHistory(
   userId: string | Types.ObjectId,
   historyId?: MongoId | null
 ) {
-  const pipeline: any[] = [];
+  const pipeline = [];
   const limit = 15;
 
   if (historyId) {
@@ -86,7 +86,7 @@ async function getWatchHistory(
       },
     }
   );
-  const history = await WatchHistory.aggregate(pipeline);
+  const history = await WatchHistory.aggregate(pipeline as []);
 
   return pageinationHelper(history, limit, false);
 }
