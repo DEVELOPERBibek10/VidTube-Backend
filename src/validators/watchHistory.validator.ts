@@ -1,8 +1,8 @@
 import z from "zod";
 import { validateId } from "../utils/validateId.js";
 
-export const createWatchHistorySchema = z.object({
-  body: z.object({
+export const createWatchHistorySchema = z.strictObject({
+  body: z.strictObject({
     videoId: z
       .string()
       .trim()
@@ -15,8 +15,8 @@ export const createWatchHistorySchema = z.object({
   }),
 });
 
-export const fetchWatchHistorySchema = z.object({
-  query: z.object({
+export const fetchWatchHistorySchema = z.strictObject({
+  query: z.strictObject({
     historyId: z
       .string()
       .trim()
@@ -27,8 +27,8 @@ export const fetchWatchHistorySchema = z.object({
   }),
 });
 
-export const deleteWatchHistorySchema = z.object({
-  params: z.object({
+export const deleteWatchHistorySchema = z.strictObject({
+  params: z.strictObject({
     historyId: z
       .string()
       .trim()
