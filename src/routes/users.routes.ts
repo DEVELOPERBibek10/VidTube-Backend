@@ -22,7 +22,8 @@ import {
   type UpdateUserSchema,
 } from "../validators/user.validator.js";
 import {
-  fileRequestSchema,
+  avatarSchema,
+  coverImageSchema,
   noRequestDataSchema,
 } from "../validators/file.validator.js";
 
@@ -52,7 +53,7 @@ userRouter
   .patch(
     verifyJWT,
     upload.single("avatar"),
-    validation(fileRequestSchema),
+    validation(avatarSchema),
     updateAvatar
   );
 userRouter
@@ -60,7 +61,7 @@ userRouter
   .patch(
     verifyJWT,
     upload.single("coverImage"),
-    validation(fileRequestSchema),
+    validation(coverImageSchema),
     updateCoverImage
   );
 userRouter
