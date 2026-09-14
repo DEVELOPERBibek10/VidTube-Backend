@@ -7,31 +7,38 @@ import { Video } from "../models/video.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { redisClient } from "../db/redis.js";
 import { pageinationHelper } from "../utils/paginationHelper.js";
+import type { MongoId } from "../types/id.js";
+import type {
+  UserSearchResult,
+  VideoSearchResponse,
+} from "../types/Services/search.js";
+import type { IVideo } from "../types/Model/Video.js";
 
-async function userSuggestions(username: string) {
-  const users = await User.aggregate([
-    {
-      $search: {
-        index: "UserSearch",
-        autocomplete: {
-          query: username,
-          path: "username",
-          tokenOrder: "sequential",
-          fuzzy: {
-            maxEdits: 2,
+async function userSuggestions(username: string): Promise<string[]> {
+  const users: Array<{ username: string; score: number }> =
+    await User.aggregate([
+      {
+        $search: {
+          index: "UserSearch",
+          autocomplete: {
+            query: username,
+            path: "username",
+            tokenOrder: "sequential",
+            fuzzy: {
+              maxEdits: 2,
+            },
           },
         },
       },
-    },
-    {
-      $project: {
-        _id: 0,
-        username: 1,
-        score: { $meta: "searchScore" },
+      {
+        $project: {
+          _id: 0,
+          username: 1,
+          score: { $meta: "searchScore" },
+        },
       },
-    },
-    { $limit: 10 },
-  ]);
+      { $limit: 10 },
+    ]);
 
   const results = users.length !== 0 ? users.map((res) => res.username) : [];
 
@@ -42,7 +49,11 @@ async function userSearch(
   userId: string | Types.ObjectId,
   username?: string,
   pageToken?: string
-) {
+): Promise<{
+  data: UserSearchResult[];
+  nextCursor: string | Types.ObjectId | null;
+  hasNextPage: boolean;
+}> {
   const limit = 15;
   const result = await User.aggregate([
     {
@@ -99,60 +110,67 @@ async function userSearch(
       },
     },
   ]);
-  return pageinationHelper(result, limit, true);
+  return pageinationHelper<UserSearchResult>(
+    result as UserSearchResult[],
+    limit,
+    true
+  );
 }
 
-async function videoTitleSuggestions(title: string) {
-  const videos = await Video.aggregate([
-    {
-      $search: {
-        index: "title_index",
-        autocomplete: {
-          query: title,
-          path: "title",
-          tokenOrder: "sequential",
-          fuzzy: {
-            maxEdits: 2,
+async function videoTitleSuggestions(title: string): Promise<string[]> {
+  const videos: Array<{ title: string; score: number }> = await Video.aggregate(
+    [
+      {
+        $search: {
+          index: "title_index",
+          autocomplete: {
+            query: title,
+            path: "title",
+            tokenOrder: "sequential",
+            fuzzy: {
+              maxEdits: 2,
+            },
           },
         },
       },
-    },
-    {
-      $project: {
-        _id: 0,
-        title: 1,
-        score: { $meta: "searchScore" },
+      {
+        $project: {
+          _id: 0,
+          title: 1,
+          score: { $meta: "searchScore" },
+        },
       },
-    },
-    { $limit: 10 },
-  ]);
+      { $limit: 10 },
+    ]
+  );
 
   const results = videos.length !== 0 ? videos.map((res) => res.title) : [];
 
   return results;
 }
 async function videoSearch(
-  userId: string | Types.ObjectId,
+  userId: MongoId,
   searchQuery?: string,
   queryHash?: string,
   page = 1
-) {
+): Promise<VideoSearchResponse> {
   const searchHash =
-    queryHash || !searchQuery
-      ? queryHash
-      : crypto.createHash("md5").update(searchQuery).digest("hex");
-  const searchKey = `search:${userId}:${searchHash}`;
+    queryHash ??
+    (searchQuery
+      ? crypto.createHash("md5").update(searchQuery).digest("hex")
+      : "");
+  const searchKey = `search:${userId as string}:${searchHash}`;
   const exists = await redisClient.exists(searchKey);
   const vectorLimit = 60;
   const start = (page - 1) * 20;
   const end = start + 19;
-  let videoIds: string[] = [];
+  let videoIds: string[];
 
   if (exists) {
     videoIds = await redisClient.lrange(searchKey, start, end + 1);
   } else if (!exists && searchQuery) {
     const videoEmbeddig = await getVectorEmbedding(searchQuery);
-    const videos = await Video.aggregate([
+    const videos: Array<{ _id: MongoId }> = await Video.aggregate([
       {
         $vectorSearch: {
           index: "video_title_index",
@@ -185,7 +203,7 @@ async function videoSearch(
 
     const result = await pipeline.exec();
 
-    result?.forEach(([err, result], index) => {
+    result?.forEach(([err], index) => {
       if (err) {
         console.error(`Redis pipeline command ${index} failed: ${err.message}`);
         throw new ApiError(
@@ -218,13 +236,13 @@ async function videoSearch(
       hasNextPage: false,
     };
   }
-  const cpyVideos = new Map();
-  for (let video of videos) {
+  const cpyVideos = new Map<string, IVideo>();
+  for (const video of videos) {
     cpyVideos.set(String(video._id), video);
   }
   const response = videoIds.map((id) => cpyVideos.get(id));
   return {
-    videos: response,
+    videos: response as IVideo[],
     nextCursor: searchHash,
     hasNextPage: areVideosLeft,
   };
