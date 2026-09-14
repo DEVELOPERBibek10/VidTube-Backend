@@ -22,15 +22,14 @@ import type {
   VideoQuerySchema,
   VideoUploadSchema,
 } from "../validators/video.validator.js";
-import type { MongoId } from "../types/id.js";
 import {
   videoSearch,
   videoTitleSuggestions,
 } from "../services/search.service.js";
 
 const getVideoSignature = asyncHandler(
-  async (req: AuthTypedRequest, res: Response) => {
-    const { signature, timestamp, folder } = await getSignature();
+  (req: AuthTypedRequest<null, null, null>, res: Response) => {
+    const { signature, timestamp, folder } = getSignature();
 
     return res.status(200).json(
       new ApiResponse(
@@ -92,7 +91,11 @@ const updateVideoDetails = asyncHandler(
   ) => {
     const { title, description, isPublished } = req.body;
     const { videoId } = req.params;
-    const updateData: any = {};
+    const updateData: {
+      title?: string;
+      description?: string;
+      isPublished?: boolean;
+    } = {};
 
     if (!mongoose.Types.ObjectId.isValid(videoId)) {
       throw new ApiError(
@@ -125,7 +128,7 @@ const updateVideoDetails = asyncHandler(
 
 const updateThumbnail = asyncHandler(
   async (
-    req: AuthTypedRequest<null, any, UpdateVideoParamsSchema>,
+    req: AuthTypedRequest<null, null, UpdateVideoParamsSchema>,
     res: Response
   ) => {
     const { videoId } = req.params;
@@ -190,7 +193,7 @@ export const getVideo = asyncHandler(
 
 const getAllVideos = asyncHandler(
   async (
-    req: AuthTypedRequest<any, any, any, VideoQuerySchema>,
+    req: AuthTypedRequest<null, null, null, VideoQuerySchema>,
     res: Response
   ) => {
     const { videoId, userId } = req.query;
