@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import jwt, { type Secret } from "jsonwebtoken";
+import jwt, { type Secret, type SignOptions } from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import type { IUserDocument } from "../types/Model/User.js";
 
@@ -66,11 +66,14 @@ userSchema.pre("save", async function () {
   this.password = await bcrypt.hash(this.password, 10);
 });
 
-userSchema.methods.isPasswordCorrect = async function (password: string) {
-  return await bcrypt.compare(password, this.password);
+userSchema.methods.isPasswordCorrect = async function (
+  this: IUserDocument,
+  password: string
+) {
+  return bcrypt.compare(password, this.password);
 };
 
-userSchema.methods.generateAccessToken = function () {
+userSchema.methods.generateAccessToken = function (this: IUserDocument) {
   return jwt.sign(
     {
       _id: this._id,
@@ -78,21 +81,21 @@ userSchema.methods.generateAccessToken = function () {
       username: this.username,
       token_type: "access",
     },
-    process.env.ACCESS_TOKEN_SECRET! as Secret,
+    process.env.ACCESS_TOKEN_SECRET as Secret,
     {
-      expiresIn: process.env.ACCESS_TOKEN_EXPIRY! as any,
+      expiresIn: process.env.ACCESS_TOKEN_EXPIRY as SignOptions["expiresIn"],
     }
   );
 };
-userSchema.methods.generateRefreshToken = function () {
+userSchema.methods.generateRefreshToken = function (this: IUserDocument) {
   return jwt.sign(
     {
-      _id: this._id,
+      _id: this._id as string,
       token_type: "refresh",
     },
     process.env.REFRESH_TOKEN_SECRET! as Secret,
     {
-      expiresIn: process.env.REFRESH_TOKEN_EXPIRY! as any,
+      expiresIn: process.env.REFRESH_TOKEN_EXPIRY as SignOptions["expiresIn"],
     }
   );
 };
