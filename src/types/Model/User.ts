@@ -1,6 +1,8 @@
-import { Types } from "mongoose";
+import { type Types } from "mongoose";
+import type { MongoId } from "../id.js";
 
 export interface IUser {
+  _id: MongoId;
   username: string;
   email: string;
   fullName: string;
