@@ -49,11 +49,19 @@ async function getSubscribedChannels(
   subscriberId: MongoId,
   channelId?: MongoId
 ) {
-  const pipeline: Record<string, any>[] = [];
+  const pipeline = [];
 
   pipeline.push({
     $match: { subscriber: { $lt: subscriberId } },
   });
+
+  if (channelId) {
+    pipeline.push({
+      $match: { channel: channelId },
+    });
+  }
+
+  await Subscription.aggregate(pipeline);
 }
 
 export { toggleSubscription, getSubscribedChannels };
