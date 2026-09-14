@@ -33,15 +33,13 @@ interface UserRequest {
 
 export interface AuthTypedRequest<
   TBody,
-  TFile extends Express.Multer.File | Express.Multer.File[] | null =
-    Express.Multer.File | Express.Multer.File[],
+  TFile extends Express.Multer.File | null = Express.Multer.File | null,
   TParams extends Params | null = Params,
   TQuery extends ParsedQs | null = ParsedQs,
-> extends Omit<Request, "body" | "files" | "file" | "params" | "query"> {
+> extends Omit<Request, "body" | "file" | "params" | "query"> {
   body: TBody;
   user: UserRequest;
   params: TParams;
   query: TQuery;
-  files: TFile;
-  file: Express.Multer.File | null;
+  file: TFile;
 }
