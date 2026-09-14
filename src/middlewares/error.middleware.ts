@@ -1,4 +1,3 @@
-// src/middlewares/globalErrorHandler.ts
 import type { NextFunction, Request, Response } from "express";
 import { ApiError } from "../utils/ApiError.js";
 import { MulterError } from "multer";
@@ -11,14 +10,15 @@ import {
   handleMongooseValidationError,
 } from "../utils/errorTransformers.js";
 import type { GlobalError } from "../types/Error/GobalError.js";
+import { HttpError } from "http-errors";
 
 const globalErrorHandler = (
   err: GlobalError,
-  req: Request,
+  _req: Request,
   res: Response,
-  next: NextFunction
-) => {
-  let error = err;
+  _next: NextFunction
+): void => {
+  let error: unknown = err;
 
   if (err instanceof mongoose.mongo.MongoServerError && err.code === 11000)
     error = handleMongoDuplicateKey(err);
@@ -27,29 +27,31 @@ const globalErrorHandler = (
   else if (err instanceof MongooseError.ValidationError)
     error = handleMongooseValidationError(err);
   else if (
-    "body" in err &&
+    err instanceof HttpError &&
     typeof err.status === "number" &&
-    err.type === "string" &&
-    err.type.includes(".")
+    err.type === "string"
   )
     error = handleParseError(err);
 
+  let apiError: ApiError;
   if (!(error instanceof ApiError)) {
     console.error("CRITICAL SYSTEM ERROR:", error);
-    error = new ApiError(
+    apiError = new ApiError(
       500,
       "INTERNAL_SERVER_ERROR",
-      error.message || "Internal Server Error"
+      "Unexpected error occured"
     );
+  } else {
+    apiError = error;
   }
 
-  res.status(error.statusCode).json({
+  res.status(apiError.statusCode).json({
     success: false,
-    statusCode: error.statusCode,
-    code: error.code,
-    message: error.message,
-    errors: error.errors?.length ? error.errors : undefined,
-    stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
+    statusCode: apiError.statusCode,
+    code: apiError.code,
+    message: apiError.message,
+    errors: apiError.errors?.length ? apiError.errors : undefined,
+    stack: process.env.NODE_ENV === "development" ? apiError.stack : undefined,
   });
 };
 
