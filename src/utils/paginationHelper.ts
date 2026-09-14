@@ -1,5 +1,12 @@
-export function pageinationHelper(
-  data: Record<string, any>[],
+import type { MongoId } from "../types/id.js";
+
+interface Paginable {
+  paginationToken?: string;
+  _id?: MongoId;
+}
+
+export function pageinationHelper<T extends Paginable>(
+  data: T[],
   limit: number,
   paginationTokenExists: boolean
 ) {
