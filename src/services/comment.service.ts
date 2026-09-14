@@ -24,7 +24,7 @@ async function createComment(commentData: CreateComment): Promise<IComment> {
 async function getAllComments(commentQuery: GetAllComments) {
   const { videoId, cursor, parentComment, userId } = commentQuery;
   const limit = 6;
-  const pipeline: any[] = [];
+  const pipeline = [];
 
   if (!cursor && !parentComment && videoId) {
     // It is for fetching top-level comments without pagination
@@ -129,7 +129,7 @@ async function getAllComments(commentQuery: GetAllComments) {
       },
     }
   );
-  const comments = await Comment.aggregate(pipeline);
+  const comments = await Comment.aggregate(pipeline as []);
   return pageinationHelper(comments, limit, false);
 }
 
