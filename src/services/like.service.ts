@@ -48,6 +48,7 @@ async function likeToggle(
       return {
         success: true,
         likeStatus: "Liked",
+        id: target.modifiedCount > 0 ? target.upsertedId : null,
       };
     }
     const target =
@@ -64,6 +65,7 @@ async function likeToggle(
     return {
       success: true,
       likeStatus: "Unliked",
+      id: target.modifiedCount > 0 ? target.upsertedId : null,
     };
   });
 }
