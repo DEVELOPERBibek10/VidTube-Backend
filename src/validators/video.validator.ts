@@ -1,9 +1,9 @@
-import { Types } from "mongoose";
 import { z } from "zod";
 import { validateId } from "../utils/validateId.js";
 
-export const videoRequestSchema = z.object({
-  body: z.object({
+export const videoRequestSchema = z.strictObject({
+  file: z.unknown(),
+  body: z.strictObject({
     title: z
       .string()
       .trim()
@@ -34,9 +34,9 @@ export const videoRequestSchema = z.object({
   }),
 });
 
-export const updateVideoSchema = z.object({
+export const updateVideoSchema = z.strictObject({
   body: z
-    .object({
+    .strictObject({
       title: z
         .string()
         .trim()
@@ -63,8 +63,8 @@ export const updateVideoSchema = z.object({
     }),
 });
 
-export const updateVideoParamsSchema = z.object({
-  params: z.object({
+export const updateVideoParamsSchema = z.strictObject({
+  params: z.strictObject({
     videoId: z
       .string()
       .trim()
@@ -74,8 +74,8 @@ export const updateVideoParamsSchema = z.object({
   }),
 });
 
-export const videoQuerySchema = z.object({
-  query: z.object({
+export const videoQuerySchema = z.strictObject({
+  query: z.strictObject({
     videoId: z
       .string()
       .trim()
@@ -93,8 +93,8 @@ export const videoQuerySchema = z.object({
   }),
 });
 
-export const getSuggestionsSchema = z.object({
-  query: z.object({
+export const getSuggestionsSchema = z.strictObject({
+  query: z.strictObject({
     title: z
       .string()
       .trim()
@@ -102,9 +102,9 @@ export const getSuggestionsSchema = z.object({
   }),
 });
 
-const videoSearchQuerySchema = z.object({
+export const videoSearchQuerySchema = z.strictObject({
   query: z
-    .object({
+    .strictObject({
       searchQuery: z
         .string()
         .trim()
