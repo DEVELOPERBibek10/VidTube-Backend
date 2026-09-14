@@ -1,6 +1,7 @@
 import mongoose, { Schema } from "mongoose";
+import type { WatchHistoryDocument } from "../types/Services/watchHistory.js";
 
-const watchHistorySchema = new Schema({
+const watchHistorySchema = new Schema<WatchHistoryDocument>({
   user: {
     type: Schema.Types.ObjectId,
     ref: "User",
@@ -25,4 +26,4 @@ const watchHistorySchema = new Schema({
 watchHistorySchema.index({ user: 1, video: 1 }, { unique: true });
 watchHistorySchema.index({ user: 1, watchedAt: -1 });
 
-export const WatchHistory = mongoose.model("WatchHistory", watchHistorySchema);
+export const WatchHistory = mongoose.model<WatchHistoryDocument>("WatchHistory", watchHistorySchema);
