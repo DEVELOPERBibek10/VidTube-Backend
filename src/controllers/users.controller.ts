@@ -1,7 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import type { NextFunction, Request } from "express";
+import type { Request } from "express";
 
 import type { AuthTypedRequest, TypedRequest } from "../types/request.js";
 import type { Response } from "express";
@@ -66,7 +66,7 @@ const loginUser = asyncHandler(
 );
 
 const logoutUser = asyncHandler(async (req: Request, res: Response) => {
-  const incomingRefreshToken = req.cookies?.refreshToken;
+  const incomingRefreshToken = req.cookies.refreshToken as string;
 
   await logout(incomingRefreshToken);
 
@@ -78,8 +78,8 @@ const logoutUser = asyncHandler(async (req: Request, res: Response) => {
 });
 
 const refreshAccessToken = asyncHandler(
-  async (req: TypedRequest, res: Response, next: NextFunction) => {
-    const incomingRefreshToken = req.cookies.refreshToken;
+  async (req: TypedRequest<null>, res: Response) => {
+    const incomingRefreshToken = req.cookies.refreshToken as string;
 
     if (!incomingRefreshToken) {
       throw new ApiError(
@@ -99,7 +99,7 @@ const refreshAccessToken = asyncHandler(
 );
 
 const getCurrentUser = asyncHandler(
-  async (req: AuthTypedRequest, res: Response) => {
+  (req: AuthTypedRequest<null>, res: Response) => {
     const {
       _id,
       fullName,
@@ -143,7 +143,9 @@ const changeCurrentPassword = asyncHandler(
       .status(200)
       .clearCookie("refreshToken", accessTokenOptions)
       .clearCookie("accessToken", refreshTokenOptions)
-      .json(new ApiResponse<{}>(200, {}, "Login again with the new password."));
+      .json(
+        new ApiResponse<null>(200, null, "Login again with the new password.")
+      );
   }
 );
 
@@ -162,7 +164,7 @@ const updateDetails = asyncHandler(
 );
 
 const updateAvatar = asyncHandler(
-  async (req: AuthTypedRequest, res: Response) => {
+  async (req: AuthTypedRequest<null>, res: Response) => {
     const avatarLocalFile = req.file?.path;
 
     if (!avatarLocalFile) {
@@ -186,7 +188,7 @@ const updateAvatar = asyncHandler(
 );
 
 const updateCoverImage = asyncHandler(
-  async (req: AuthTypedRequest, res: Response) => {
+  async (req: AuthTypedRequest<null>, res: Response) => {
     const coverImageLocalFile = req.file?.path;
 
     if (!coverImageLocalFile)
@@ -207,7 +209,7 @@ const updateCoverImage = asyncHandler(
 );
 
 const getUserChannelProfile = asyncHandler(
-  async (req: AuthTypedRequest<any, any, UserParamSchema>, res: Response) => {
+  async (req: AuthTypedRequest<null, null, UserParamSchema>, res: Response) => {
     const { username } = req.params;
 
     const channel = await getProfile(username, req.user._id);
