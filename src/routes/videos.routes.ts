@@ -25,7 +25,7 @@ import {
 import {
   fileRequestSchema,
   noRequestDataSchema,
-} from "../validators/request.validator.js";
+} from "../validators/file.validator.js";
 
 const videoRouter = Router();
 
@@ -64,7 +64,9 @@ videoRouter
     validation(updateVideoParamsSchema),
     deleteVideo
   );
-videoRouter.route("").get(verifyJWT, validation(videoQuerySchema), getAllVideos);
+videoRouter
+  .route("")
+  .get(verifyJWT, validation(videoQuerySchema), getAllVideos);
 videoRouter
   .route("/suggestions")
   .get(verifyJWT, validation(getSuggestionsSchema), getSuggestions);

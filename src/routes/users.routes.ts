@@ -24,7 +24,7 @@ import {
 import {
   fileRequestSchema,
   noRequestDataSchema,
-} from "../validators/request.validator.js";
+} from "../validators/file.validator.js";
 
 const userRouter = Router();
 
