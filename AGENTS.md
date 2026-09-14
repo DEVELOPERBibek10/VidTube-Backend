@@ -11,8 +11,11 @@
 - `npm run dev` — watch mode (tsx watch src/index.ts)
 - `npm run build` — clean dist/, compile TS
 - `npm start` — run compiled dist/index.js
+- `npm run lint`— check the linting of the codebase.
+- `npm run lint:fix` — auto-fix (partial, doesn't cover semantic rules)
+- `npm run format` — apply Prettier formatting
 - `touch` — create empty file
-- No test or lint scripts configured yet (npm test / npm run lint undefined)
+- No test scripts configured yet (npm test undefined).
 
 ## High-level architecture
 
