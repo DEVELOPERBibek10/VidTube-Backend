@@ -4,6 +4,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { uploadFile } from "../utils/cloudinary.js";
 import mongoose from "mongoose";
 import { redisClient } from "../db/redis.js";
+import type { UserProfile } from "../types/Services/user.js";
 
 async function updateInfo(userId: string | Types.ObjectId, fullName: string) {
   const updatedUser = await User.findByIdAndUpdate(
@@ -73,12 +74,17 @@ async function updateCover(
   return updatedUser;
 }
 
-async function getProfile(username: string, userId: string | Types.ObjectId) {
-  const cachedChannel = await redisClient.get(`user:profile:${userId}`);
+async function getProfile(
+  username: string,
+  userId: string | Types.ObjectId
+): Promise<UserProfile | null> {
+  const cachedChannel = await redisClient.get(
+    `user:profile:${userId as string}`
+  );
   if (cachedChannel) {
-    return JSON.parse(cachedChannel);
+    return JSON.parse(cachedChannel) as UserProfile;
   }
-  const channel = await User.aggregate([
+  const channel: UserProfile[] = await User.aggregate([
     {
       $match: { username: username.toLowerCase() },
     },
@@ -142,7 +148,7 @@ async function getProfile(username: string, userId: string | Types.ObjectId) {
 
   if (channel && channel.length > 0) {
     await redisClient.set(
-      `user:profile:${channel[0]._id}`,
+      `user:profile:${String(channel[0]?._id)}`,
       JSON.stringify(channel[0]),
       "PX",
       21600
