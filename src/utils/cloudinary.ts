@@ -28,32 +28,34 @@ const uploadFile = async (
   try {
     const response = await cloudinary.uploader.upload(localFilePath, options);
 
-    return response as UploadApiResponse;
-  } catch (error: any) {
-    console.error("CLOUDINARY ERROR:", error);
+    return response;
+  } catch (error: unknown) {
+    if (error instanceof Error && "http_code" in error) {
+      console.error("CLOUDINARY ERROR:", error);
+      if (!error.http_code) {
+        throw new ApiError(
+          503,
+          "NETWORK_ERROR",
+          "Could not connect to Cloud Service."
+        );
+      }
 
-    if (!error.http_code) {
-      throw new ApiError(
-        503,
-        "NETWORK_ERROR",
-        "Could not connect to Cloud Service."
-      );
+      if (error.http_code === 400) {
+        throw new ApiError(
+          400,
+          "INVALID_UPLOAD_PARAMS",
+          `Cloudinary Upload Rejected: ${error.message}`
+        );
+      }
+      if ((error.http_code as number) >= 500) {
+        throw new ApiError(
+          502,
+          "EXT_STORAGE_DOWN",
+          "Cloudinary servers are experiencing issues."
+        );
+      }
     }
-
-    if (error.http_code === 400) {
-      throw new ApiError(
-        400,
-        "INVALID_UPLOAD_PARAMS",
-        `Cloudinary Upload Rejected: ${error.message}`
-      );
-    }
-    if (error.http_code >= 500) {
-      throw new ApiError(
-        502,
-        "EXT_STORAGE_DOWN",
-        "Cloudinary servers are experiencing issues."
-      );
-    }
+    console.error("Unexpected Cloudinary Error:", error);
     throw new ApiError(
       500,
       "INTERNAL_SERVER_ERROR",
@@ -68,20 +70,24 @@ const uploadFile = async (
   }
 };
 
-const deleteFile = async (publicId: string, resourceType: string = "image") => {
+const deleteFile = async (publicId: string, resourceType: string = "image"): Promise<void> => {
   try {
     await cloudinary.uploader.destroy(publicId, {
       resource_type: resourceType,
       invalidate: true,
     });
-  } catch (error: any) {
-    if (error.http_code === 400 || error.http_code === 401) {
-      throw new ApiError(
-        400,
-        "INVALID_DELETE_REQ",
-        `Cloudinary Deletion Failed: ${error.message}`
-      );
+  } catch (error: unknown) {
+    if (error instanceof Error && "http_code" in error) {
+      console.error("CLOUDINARY ERROR:", error);
+      if (error.http_code === 400 || error.http_code === 401) {
+        throw new ApiError(
+          400,
+          "INVALID_DELETE_REQ",
+          `Cloudinary Deletion Failed: ${error.message}`
+        );
+      }
     }
+    console.error("Unexpected Cloudinary Error:", error);
     throw new ApiError(
       502,
       "STORAGE_SERVICE_UNAVAILABLE",
