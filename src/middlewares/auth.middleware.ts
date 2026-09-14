@@ -12,41 +12,41 @@ export interface DecodedToken extends JwtPayload {
   fullName: string;
 }
 
-export const verifyJWT = asyncHandler(
-  async (req: AuthTypedRequest, res: Response, next: NextFunction) => {
-    const token =
-      req.cookies?.accessToken ||
-      req.header("Authorization")?.replace("Bearer ", "");
+export const verifyJWT = asyncHandler(async function <
+  T extends Record<string, unknown>,
+>(req: AuthTypedRequest<T>, res: Response, next: NextFunction) {
+  const token =
+    (req.cookies?.accessToken as string) ||
+    req.header("Authorization")?.replace("Bearer ", "");
 
-    if (!token) {
-      throw new ApiError(401, "UNAUTHORIZED", "Unauthorized request");
+  if (!token) {
+    throw new ApiError(401, "UNAUTHORIZED", "Unauthorized request");
+  }
+  try {
+    const decodedToken = jwt.verify(
+      token,
+      process.env.ACCESS_TOKEN_SECRET!
+    ) as DecodedToken;
+
+    const user = await User.findById(decodedToken._id);
+
+    if (!user) {
+      throw new ApiError(404, "NOT_FOUND", "User not found!");
     }
-    try {
-      const decodedToken = jwt.verify(
-        token,
-        process.env.ACCESS_TOKEN_SECRET!
-      ) as DecodedToken;
 
-      const user = await User.findById(decodedToken._id);
+    req.user = user;
 
-      if (!user) {
-        throw new ApiError(404, "NOT_FOUND", "User not found!");
-      }
-
-      req.user = user;
-
-      next();
-    } catch (error) {
-      if (error instanceof ApiError) {
-        throw error;
-      }
-      if (error instanceof jwt.TokenExpiredError) {
-        throw new ApiError(401, "ACCESS_TOKEN_EXPIRED", "Session expired!");
-      }
-      if (error instanceof jwt.JsonWebTokenError) {
-        throw new ApiError(401, "INVALID_ACCESS_TOKEN", "Invalid access token");
-      }
+    next();
+  } catch (error) {
+    if (error instanceof ApiError) {
       throw error;
     }
+    if (error instanceof jwt.TokenExpiredError) {
+      throw new ApiError(401, "ACCESS_TOKEN_EXPIRED", "Session expired!");
+    }
+    if (error instanceof jwt.JsonWebTokenError) {
+      throw new ApiError(401, "INVALID_ACCESS_TOKEN", "Invalid access token");
+    }
+    throw error;
   }
-);
+});
