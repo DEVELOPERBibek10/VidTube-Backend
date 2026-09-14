@@ -1,8 +1,8 @@
 import z from "zod";
 import { validateId } from "../utils/validateId.js";
 
-const createCommentSchema = z.object({
-  body: z.object({
+const createCommentSchema = z.strictObject({
+  body: z.strictObject({
     videoId: z
       .string()
       .trim()
@@ -20,8 +20,8 @@ const createCommentSchema = z.object({
   }),
 });
 
-const fetchCommentsSchema = z.object({
-  query: z.object({
+const fetchCommentsSchema = z.strictObject({
+  query: z.strictObject({
     videoId: z
       .string()
       .trim()
@@ -45,8 +45,8 @@ const fetchCommentsSchema = z.object({
   }),
 });
 
-const editCommentSchema = z.object({
-  params: z.object({
+const editCommentSchema = z.strictObject({
+  params: z.strictObject({
     commentId: z
       .string()
       .trim()
@@ -55,13 +55,13 @@ const editCommentSchema = z.object({
       })
       .min(1, { error: "commentId is required." }),
   }),
-  body: z.object({
+  body: z.strictObject({
     content: z.string().trim().min(1, { error: "content is required." }),
   }),
 });
 
-const deleteCommentSchema = z.object({
-  params: z.object({
+const deleteCommentSchema = z.strictObject({
+  params: z.strictObject({
     commentId: z
       .string()
       .trim()
@@ -71,7 +71,12 @@ const deleteCommentSchema = z.object({
   }),
 });
 
-export { createCommentSchema, fetchCommentsSchema, editCommentSchema };
+export {
+  createCommentSchema,
+  fetchCommentsSchema,
+  editCommentSchema,
+  deleteCommentSchema,
+};
 
 export type CreateCommentSchema = z.infer<typeof createCommentSchema>["body"];
 export type FetchCommentsSchema = z.infer<typeof fetchCommentsSchema>["query"];
