@@ -1,15 +1,20 @@
+export interface ApiErrorDetail {
+  field: string;
+  message: string;
+}
+
 class ApiError extends Error {
   statusCode: number;
   data: null;
   success: boolean;
-  errors: any[];
+  errors: Array<string | ApiErrorDetail>;
   message: string;
   code: string;
   constructor(
     statusCode: number,
     code = "",
     message = "Something went wrong",
-    errors: any[] = [],
+    errors: Array<string | ApiErrorDetail> = [],
     stack = ""
   ) {
     super(message);
