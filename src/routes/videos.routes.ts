@@ -19,11 +19,11 @@ import {
   videoQuerySchema,
   getSuggestionsSchema,
   videoSearchQuerySchema,
-  type UpdateVideoParamsSchema,
   type UpdateVideoSchema,
+  type VideoUploadSchema,
 } from "../validators/video.validator.js";
 import {
-  fileRequestSchema,
+  thumbnailSchema,
   noRequestDataSchema,
 } from "../validators/file.validator.js";
 
@@ -35,7 +35,7 @@ videoRouter
 videoRouter
   .route("/upload")
   .post(
-    verifyJWT,
+    verifyJWT<VideoUploadSchema>,
     upload.single("thumbnail"),
     validation(videoRequestSchema),
     uploadVideo
@@ -43,7 +43,7 @@ videoRouter
 videoRouter
   .route("/details/:videoId")
   .patch(
-    verifyJWT<UpdateVideoParamsSchema | UpdateVideoSchema>,
+    verifyJWT<UpdateVideoSchema>,
     validation(updateVideoParamsSchema),
     validation(updateVideoSchema),
     updateVideoDetails
@@ -51,19 +51,15 @@ videoRouter
 videoRouter
   .route("/thumbnail/:videoId")
   .patch(
-    verifyJWT<UpdateVideoParamsSchema>,
+    verifyJWT,
     validation(updateVideoParamsSchema),
     upload.single("thumbnail"),
-    validation(fileRequestSchema),
+    validation(thumbnailSchema),
     updateThumbnail
   );
 videoRouter
   .route("/:videoId")
-  .delete(
-    verifyJWT<UpdateVideoParamsSchema>,
-    validation(updateVideoParamsSchema),
-    deleteVideo
-  );
+  .delete(verifyJWT, validation(updateVideoParamsSchema), deleteVideo);
 videoRouter
   .route("")
   .get(verifyJWT, validation(videoQuerySchema), getAllVideos);
