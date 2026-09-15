@@ -47,17 +47,9 @@ async function register(user: Register) {
 
   const createdUser = await User.create({
     fullName,
-    avatar: {
-      url: "",
-      publicId: "",
-    },
-    coverImage: {
-      url: "",
-      publicId: "",
-    },
-    email: email.toLowerCase(),
+    email,
     password,
-    username: username.toLowerCase(),
+    username,
   });
 
   return createdUser;
