@@ -226,6 +226,17 @@ const getUserSearchSuggestions = asyncHandler(
     res: Response
   ) => {
     const { username } = req.params;
+    if (!username || username.trim() === "") {
+      return res
+        .status(200)
+        .json(
+          new ApiResponse(
+            200,
+            [],
+            "No username provided, returning empty suggestions."
+          )
+        );
+    }
 
     const suggestions = await userSuggestions(username);
 

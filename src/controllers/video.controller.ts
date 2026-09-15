@@ -128,7 +128,7 @@ const updateVideoDetails = asyncHandler(
 
 const updateThumbnail = asyncHandler(
   async (
-    req: AuthTypedRequest<null, null, UpdateVideoParamsSchema>,
+    req: AuthTypedRequest<null, Express.Multer.File, UpdateVideoParamsSchema>,
     res: Response
   ) => {
     const { videoId } = req.params;
@@ -141,13 +141,13 @@ const updateThumbnail = asyncHandler(
       );
     }
 
-    const thumbnailLocalPath = req.file?.path;
+    const thumbnailLocalPath = req.file.path;
 
     if (!thumbnailLocalPath) {
       throw new ApiError(
         400,
         "MISSING_REQUIRED_FIELD",
-        "Thumbnail is a required "
+        "Thumbnail is a required field."
       );
     }
 
@@ -212,8 +212,16 @@ const getSuggestions = asyncHandler(
   ) => {
     const { title } = req.query;
 
-    if (!title) {
-      return res.status(200).json([]);
+    if (!title || title.trim() === "") {
+      return res
+        .status(200)
+        .json(
+          new ApiResponse(
+            200,
+            [],
+            "No title provided, returning empty suggestions."
+          )
+        );
     }
 
     const titles = await videoTitleSuggestions(title);
