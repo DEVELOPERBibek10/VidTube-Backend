@@ -17,6 +17,7 @@ export const registerSchema = z.strictObject({
     username: z
       .string()
       .trim()
+      .toLowerCase()
       .min(3, { error: "Username must be at least 3 characters" })
       .max(20, { error: "Username cannot be more than 20 characters." }),
 
@@ -78,7 +79,8 @@ export const getUserSuggestionsSchema = z.strictObject({
       .string()
       .trim()
       .min(3, { error: "Username must be at least 3 characters" })
-      .max(20, { error: "Username cannot be more than 20 characters." }),
+      .max(20, { error: "Username cannot be more than 20 characters." })
+      .optional(),
   }),
 });
 
