@@ -4,6 +4,7 @@ import type {
   VideoUpdate,
   VideoUpload,
   VideoDocument,
+  PaginatedVideoDocument,
 } from "../types/Services/video.js";
 import { deleteFile, uploadFile } from "../utils/cloudinary.js";
 import { Video } from "../models/video.model.js";
@@ -414,9 +415,11 @@ async function getEveryVideo(videoId?: MongoId, userId?: MongoId) {
     }
   );
 
-  const videos = await Video.aggregate(pipeline as []);
+  const videos: PaginatedVideoDocument[] = await Video.aggregate(
+    pipeline as []
+  );
 
-  return pageinationHelper(videos, limit, false);
+  return pageinationHelper<PaginatedVideoDocument>(videos, limit, false);
 }
 
 export {
