@@ -76,6 +76,8 @@ async function getWatchHistory(userId: MongoId, historyId?: MongoId | null) {
               videoFile: 1,
               thumbnail: 1,
               owner: 1,
+              watchTime: 1,
+              watchedAt: 1,
             },
           },
         ],
