@@ -35,3 +35,19 @@ export interface VideoDocument {
   isSubscribed?: boolean;
   watchTime?: number | null;
 }
+
+export interface PaginatedVideoDocument {
+  _id: MongoId;
+  title: string;
+  description: string;
+  duration: number;
+  views: number;
+  creator?: {
+    username: string;
+    avatar: { url: string; publicId: string };
+  };
+  videoFile: { url: string; publicId: string };
+  thumbnail: { url: string; publicId: string };
+  createdAt: Date;
+  updatedAt: Date;
+}
