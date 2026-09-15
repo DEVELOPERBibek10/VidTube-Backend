@@ -9,7 +9,11 @@ export function pageinationHelper<T extends Paginable>(
   data: T[],
   limit: number,
   paginationTokenExists: boolean
-) {
+): {
+  data: T[];
+  nextCursor: string | MongoId | null;
+  hasNextPage: boolean;
+} {
   if (!data || data.length === 0) {
     return {
       data: [],
