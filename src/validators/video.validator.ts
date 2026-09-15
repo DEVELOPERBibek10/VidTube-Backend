@@ -99,7 +99,8 @@ export const getSuggestionsSchema = z.strictObject({
     title: z
       .string()
       .trim()
-      .max(50, { error: "Search query cannot exceed 50 characters." }),
+      .max(50, { error: "Search query cannot exceed 50 characters." })
+      .optional(),
   }),
 });
 
