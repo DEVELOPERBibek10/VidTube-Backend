@@ -30,7 +30,7 @@
 - Higher preferece for conventional function syntax over arrow functions (e.g., `function foo() {}` vs `const foo = () => {}`) for better stack traces.
 - File structure: `src/{config,constants,db,routes,controllers,services,models,middleware,utils,types,validator}`.
 - ESM: local imports use `.js` specifiers (NodeNext).
-- Async handlers wrapped in `asyncHandler` (`src/utils/asyncHandler.ts`), no inline try/catch.
+- Async middleware/controllers wrapped in `asyncHandler` (`src/utils/asyncHandler.ts`) — no try/catch inside, and none needed in awaited calls beneath it either (except cleanup, error-enrichment, or an intentional fallback); un-awaited calls and cron/queue code aren't covered and need explicit handling.
 - Responses: success → `ApiResponse`; failure → throw `ApiError`. Global error middleware (`src/middleware/error.middleware.ts`) + transformers (`src/utils/errorTransformers.ts`) normalize Zod/Multer/MongoDB/parse errors.
 - Types: `src/types/Error/*` (ApiError, GlobalError), `Model/*`, `Services/*` (return/param types), `request.ts` (AuthTypedRequest, TypedRequestBody/Query/Params).
 - Zod schemas: `{ body?, params?, query? }`; `validation(schema)` middleware (`src/middleware/validation.middleware.ts`) parses + overwrites req.body/params/query before controllers run.
