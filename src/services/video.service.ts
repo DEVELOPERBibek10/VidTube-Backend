@@ -8,7 +8,6 @@ import type {
 } from "../types/Services/video.js";
 import { deleteFile, uploadFile } from "../utils/cloudinary.js";
 import { Video } from "../models/video.model.js";
-import type { Types } from "mongoose";
 import mongoose from "mongoose";
 import { redisClient } from "../db/redis.js";
 import { WatchHistory } from "../models/watchHistory.model.js";
@@ -105,8 +104,8 @@ async function upload(videoDoc: VideoUpload) {
 }
 
 async function updateVideoInfo(
-  videoId: string | Types.ObjectId,
-  owner: string | Types.ObjectId,
+  videoId: MongoId,
+  owner: MongoId,
   updateData: VideoUpdate
 ) {
   const { title, description, isPublished } = updateData;
@@ -141,10 +140,7 @@ async function updateVideoInfo(
   return updatedVideoDetail;
 }
 
-async function reviseThumbnail(
-  videoId: string | Types.ObjectId,
-  userId: string | Types.ObjectId
-) {
+async function reviseThumbnail(videoId: MongoId, userId: MongoId) {
   const video = await Video.findById(videoId)
     .select("thumbnail.publicId thumbnail.url")
     .lean();
@@ -183,10 +179,7 @@ async function reviseThumbnail(
   return updatedVideo;
 }
 
-async function removeVideo(
-  videoId: string | Types.ObjectId,
-  owner: string | Types.ObjectId
-): Promise<void> {
+async function removeVideo(videoId: MongoId, owner: MongoId): Promise<void> {
   const video = await Video.findOne({
     _id: videoId,
     owner,
