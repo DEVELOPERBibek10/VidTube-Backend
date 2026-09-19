@@ -1,12 +1,17 @@
 import "dotenv/config";
-import { connectRedis } from "./db/redis.js";
+import { redisClientCache, redisClientQueue } from "./db/redis.js";
+import { listenRedis } from "./db/redis.js";
 import app from "./app.js";
 import connectDB from "./db/index.js";
 const port = process.env.PORT || 8000;
 
 async function server() {
   try {
-    const database = await Promise.all([connectDB(), connectRedis()]);
+    const database = await Promise.all([
+      connectDB(),
+      listenRedis(redisClientCache),
+      listenRedis(redisClientQueue),
+    ]);
     if (database.every((db) => db)) {
       const server = app.listen(port, () => {
         console.log(`Server running on port: ${port}`);
