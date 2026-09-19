@@ -1,23 +1,32 @@
 import { Redis } from "ioredis";
 
-const redisClient = new Redis(process.env.REDIS_URL!, {
+const isSecureConnection =
+  process.env.UPSTASH_REDIS_URL?.startsWith("rediss://");
+
+const redisClientCache = new Redis(process.env.UPSTASH_REDIS_URL!, {
+  maxRetriesPerRequest: 3,
+  enableReadyCheck: false,
+  ...(isSecureConnection && { tls: { rejectUnauthorized: false } }),
+});
+const redisClientQueue = new Redis(process.env.REDIS_CLOUD_URL!, {
   maxRetriesPerRequest: null,
   enableReadyCheck: false,
-  tls: process.env.REDIS_URL ? {} : undefined,
 });
-
-const connectRedis = (): Promise<Redis> => {
+const listenRedis = async (client: Redis): Promise<Redis> => {
   return new Promise((resolve, reject) => {
-    redisClient.on("connect", () => {
-      console.log("Connected to Redis");
-      resolve(redisClient);
+    client.on("connect", () => {
+      console.log(
+        "Connected to Redis",
+        client.options.host,
+        client.options.port
+      );
+      resolve(client);
     });
-
-    redisClient.on("error", (err) => {
+    client.on("error", (err) => {
       console.error("Redis connection error:", err);
       reject(err);
     });
   });
 };
 
-export { redisClient, connectRedis };
+export { redisClientCache, redisClientQueue, listenRedis };
