@@ -1,6 +1,6 @@
 import "dotenv/config";
-import { redisClientCache, redisClientQueue } from "./db/redis.js";
-import { listenRedis } from "./db/redis.js";
+import { redisClientCache, redisClientQueue } from "./config/redis.js";
+import { listenRedis } from "./config/redis.js";
 import app from "./app.js";
 import connectDB from "./db/index.js";
 const port = process.env.PORT || 8000;
