@@ -3,7 +3,7 @@ import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { uploadFile } from "../utils/cloudinary.js";
 import mongoose from "mongoose";
-import { redisClient } from "../db/redis.js";
+import { redisClientCache } from "../db/redis.js";
 import type { UserProfile } from "../types/Services/user.js";
 
 async function updateInfo(userId: string | Types.ObjectId, fullName: string) {
@@ -78,6 +78,7 @@ async function getProfile(
   username: string,
   userId: string | Types.ObjectId
 ): Promise<UserProfile | null> {
+  const redisClient = redisClientCache;
   const cachedChannel = await redisClient.get(
     `user:profile:${userId as string}`
   );

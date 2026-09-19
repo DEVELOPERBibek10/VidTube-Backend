@@ -9,7 +9,7 @@ import type {
 import { deleteFile, uploadFile } from "../utils/cloudinary.js";
 import { Video } from "../models/video.model.js";
 import mongoose from "mongoose";
-import { redisClient } from "../db/redis.js";
+import { redisClientCache } from "../db/redis.js";
 import { WatchHistory } from "../models/watchHistory.model.js";
 import { pageinationHelper } from "../utils/paginationHelper.js";
 import type { MongoId } from "../types/id.js";
@@ -229,7 +229,7 @@ async function getVideo(
   videoId: MongoId,
   userId: MongoId
 ): Promise<VideoDocument> {
-  const cachedVideo = await redisClient.get(`video:${videoId as string}`);
+  const cachedVideo = await redisClientCache.get(`video:${videoId as string}`);
   if (cachedVideo) {
     return JSON.parse(cachedVideo) as VideoDocument;
   }
@@ -329,7 +329,7 @@ async function getVideo(
     _id: videoDoc._id,
     watchTime: history ? history.watchTime : null,
   };
-  await redisClient.set(
+  await redisClientCache.set(
     `video:${String(videoDoc._id)}`,
     JSON.stringify(response),
     "PX",

@@ -5,7 +5,7 @@ import crypto from "crypto";
 import getVectorEmbedding from "../utils/vectorEmbedding.js";
 import { Video } from "../models/video.model.js";
 import { ApiError } from "../utils/ApiError.js";
-import { redisClient } from "../db/redis.js";
+import { redisClientCache } from "../db/redis.js";
 import { pageinationHelper } from "../utils/paginationHelper.js";
 import type { MongoId } from "../types/id.js";
 import type {
@@ -160,6 +160,7 @@ async function videoSearch(
       ? crypto.createHash("md5").update(searchQuery).digest("hex")
       : "");
   const searchKey = `search:${userId as string}:${searchHash}`;
+  const redisClient = redisClientCache;
   const exists = await redisClient.exists(searchKey);
   const vectorLimit = 60;
   const start = (page - 1) * 20;
