@@ -27,5 +27,6 @@ const commentSchema = new Schema<IComment>(
   },
   { timestamps: true }
 );
-
+commentSchema.index({ video: 1, parentId: 1 });
+commentSchema.index({ parentId: 1 });
 export const Comment = mongoose.model<IComment>("Comment", commentSchema);
