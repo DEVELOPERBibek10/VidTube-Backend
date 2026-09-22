@@ -63,6 +63,6 @@ const videoSchema = new Schema<IVideo>(
   { timestamps: true }
 );
 
-videoSchema.index({ owner: 1, isPublished: 1 }, { background: true });
+videoSchema.index({ owner: 1, isPublished: 1 });
 
 export const Video = mongoose.model<IVideo>("Video", videoSchema);
