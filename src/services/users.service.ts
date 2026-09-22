@@ -3,7 +3,7 @@ import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { uploadFile } from "../utils/cloudinary.js";
 import mongoose from "mongoose";
-import { redisClientCache } from "../config/redis.js";
+import { redisClientCache } from "../configs/redis.js";
 import type { UserProfile } from "../types/Services/user.js";
 
 async function updateInfo(userId: string | Types.ObjectId, fullName: string) {
