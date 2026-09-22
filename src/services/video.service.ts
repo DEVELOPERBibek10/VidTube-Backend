@@ -9,7 +9,7 @@ import type {
 import { deleteFile, uploadFile } from "../utils/cloudinary.js";
 import { Video } from "../models/video.model.js";
 import mongoose from "mongoose";
-import { redisClientCache } from "../config/redis.js";
+import { redisClientCache } from "../configs/redis.js";
 import { WatchHistory } from "../models/watchHistory.model.js";
 import { pageinationHelper } from "../utils/paginationHelper.js";
 import type { MongoId } from "../types/id.js";
