@@ -54,11 +54,11 @@ async function likeToggle(
     const target =
       likableType === LikeableType.video
         ? await Video.updateOne(
-            { _id: likableId, likes: { $gt: 0 } },
+            { _id: likableId, likes: { $gte: 0 } },
             { $inc: { likeCount: -1 } }
           ).session(session)
         : await Comment.updateOne(
-            { _id: likableId, likes: { $gt: 0 } },
+            { _id: likableId, likes: { $gte: 0 } },
             { $inc: { likeCount: -1 } }
           ).session(session);
 
