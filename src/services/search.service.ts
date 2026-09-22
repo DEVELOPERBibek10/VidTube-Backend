@@ -5,7 +5,7 @@ import crypto from "crypto";
 import getVectorEmbedding from "../utils/vectorEmbedding.js";
 import { Video } from "../models/video.model.js";
 import { ApiError } from "../utils/ApiError.js";
-import { redisClientCache } from "../config/redis.js";
+import { redisClientCache } from "../configs/redis.js";
 import { pageinationHelper } from "../utils/paginationHelper.js";
 import type { MongoId } from "../types/id.js";
 import type {
