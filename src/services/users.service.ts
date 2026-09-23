@@ -3,7 +3,6 @@ import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { uploadFile } from "../utils/cloudinary.js";
 import mongoose from "mongoose";
-import { redisClientCache } from "../configs/redis.js";
 import type { UserProfile } from "../types/Services/user.js";
 
 async function updateInfo(userId: string | Types.ObjectId, fullName: string) {
@@ -78,13 +77,6 @@ async function getProfile(
   username: string,
   userId: string | Types.ObjectId
 ): Promise<UserProfile | null> {
-  const redisClient = redisClientCache;
-  const cachedChannel = await redisClient.get(
-    `user:profile:${userId as string}`
-  );
-  if (cachedChannel) {
-    return JSON.parse(cachedChannel) as UserProfile;
-  }
   const channel: UserProfile[] = await User.aggregate([
     {
       $match: { username: username.toLowerCase() },
@@ -147,14 +139,6 @@ async function getProfile(
     },
   ]);
 
-  if (channel && channel.length > 0) {
-    await redisClient.set(
-      `user:profile:${String(channel[0]?._id)}`,
-      JSON.stringify(channel[0]),
-      "PX",
-      21600
-    );
-  }
   return channel[0] || null;
 }
 
