@@ -35,15 +35,17 @@ cleanUpWorker.on("failed", (job, err) => {
 
 const addToDlq = async (
   job: Job<CleanUpJobData>,
-  err: Error
+  err?: Error
 ): Promise<void> => {
-  console.error(`Clean up job failed for job ${job.id}:`, err);
+  const isError = err && Object.keys(err).length > 0;
+  if (isError) {
+    console.error(`Clean up job failed for job ${job.id}:`, err.message);
+  }
   if (job.attemptsMade === 4) {
     await dlq.add(`cascade-video-deletion-${job.data.deletionId}-dlq`, {
       jobId: job.id,
       name: job.name,
       data: job.data,
-      failedReason: err.message,
     });
   }
 };
