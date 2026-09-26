@@ -65,6 +65,7 @@ async function upload(videoDoc: VideoUpload) {
     });
 
     const createdVideo = {
+      _id: video._id,
       title: video.title,
       description: video.description,
       isPublished: video.isPublished,
@@ -90,14 +91,6 @@ async function upload(videoDoc: VideoUpload) {
     }
     if (response[1].status === "rejected") {
       console.error(`Video deleteion failed: ${response[1].reason}`);
-    }
-    if (
-      response[0].status === "rejected" &&
-      response[1].status === "rejected"
-    ) {
-      console.error(
-        `Deleteion failed: ${response[0].reason}, ${response[1].reason}`
-      );
     }
     throw error;
   }
@@ -209,6 +202,11 @@ async function removeVideo(videoId: MongoId, owner: MongoId): Promise<void> {
   );
 
   if (failedDeletions.length > 0) {
+    console.error(
+      `Failed to delete assets for video ${videoId as string}: ${failedDeletions.join(
+        ", "
+      )}`
+    );
     throw new ApiError(
       hasClientError ? 400 : 502,
       hasClientError
