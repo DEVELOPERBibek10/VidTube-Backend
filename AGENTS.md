@@ -24,7 +24,7 @@
 - `src/app.ts`: CORS, body limits, cookies, static files, versioned routers, then global error middleware last.
 - Flow: routes (`src/routes/*`, chains verifyJWT/validation/upload) → controllers (`src/controllers/*`, req/res only) → services (`src/services/*`, business logic: auth, search, likes, comments, users, videos, playlists, subscriptions, watch history) → models (`src/models/*`, Mongo schemas/indexes).
 - MongoDB/Mongoose = source of truth. Redis caches video details (`video:<videoId>`) and paginated video-search IDs (`search:<userId>:<hash>`, 10-minute TTL). Cloudinary = media storage; Multer writes temp files to `public/temp` pre-upload.
-- BullMQ uses the queue Redis client for video cleanup, user-interaction cleanup, retries, and a cleanup DLQ; the cleanup worker batches related-document removal before deleting the video.
+- BullMQ uses the queue Redis client for video cleanup, user-interaction cleanup, retries, and a DLQ; the cleanup worker batches related-document removal before deleting the video.
 - Search: Atlas `$search` for user/title autocomplete and user search; `$vectorSearch` on `title_embedding` for semantic video retrieval (embeddings via `src/utils/vectorEmbedding.ts`).
 
 ## Conventions
