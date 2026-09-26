@@ -12,7 +12,7 @@ function wait(duration: number): Promise<void> {
 }
 
 async function cleanUp(deletionId: MongoId): Promise<void> {
-  // TODO: Add progress tracking to skip the wait if the deletion is already complete or to retry if it fails.
+  // TODO: Add a checkpoint to skip the wait if the deletion is already complete or to retry if it fails.
   while (true) {
     const [likes, comments, watchHistories, playlists] = await Promise.all([
       Like.find({ likable: deletionId }, { _id: 1 }).limit(BATCH_SIZE).lean(),
@@ -57,7 +57,7 @@ async function cleanUp(deletionId: MongoId): Promise<void> {
       await wait(BATCH_DELAY_MS);
     }
   }
-  // TODO: Add progress tracking for media deletion to skip the wait if the deletion is completed or to retry if it fails.
+  // TODO: Add a checkpoint for media deletion to skip the wait if the deletion is completed or to retry if it fails.
 }
 
 export default cleanUp;
