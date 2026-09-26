@@ -89,12 +89,8 @@ async function getWatchHistory(userId: MongoId, historyId?: MongoId | null) {
   return pageinationHelper(history, limit, false);
 }
 
-async function deleteHistory(historyId: MongoId) {
-  await WatchHistory.findOneAndDelete({ _id: historyId });
+async function deleteHistory(userId: MongoId, historyId: MongoId) {
+  await WatchHistory.findOneAndDelete({ _id: historyId, user: userId });
 }
 
-async function clearHistory(userId: MongoId) {
-  await WatchHistory.deleteMany({ user: userId });
-}
-
-export { createHistory, getWatchHistory, deleteHistory, clearHistory };
+export { createHistory, getWatchHistory, deleteHistory };
