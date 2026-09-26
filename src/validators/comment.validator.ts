@@ -2,13 +2,15 @@ import z from "zod";
 import { validateId } from "../utils/validateId.js";
 
 const createCommentSchema = z.strictObject({
-  body: z.strictObject({
+  params: z.strictObject({
     videoId: z
       .string()
       .trim()
       .refine((value) => validateId(value), {
         message: "Invalid videoId",
       }),
+  }),
+  body: z.strictObject({
     content: z.string().trim().min(1, { error: "content is required." }),
     parentComment: z
       .string()
