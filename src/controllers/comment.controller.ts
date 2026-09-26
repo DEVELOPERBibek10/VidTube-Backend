@@ -16,16 +16,18 @@ import type {
   EditCommentSchema,
   FetchCommentsSchema,
 } from "../validators/comment.validator.js";
+import type { MongoId } from "../types/id.js";
 
 const addComment = asyncHandler(
   async (req: AuthTypedRequest<CreateCommentSchema>, res: Response) => {
-    const { videoId, content, parentComment } = req.body;
+    const { videoId } = req.params;
+    const { content, parentComment } = req.body;
 
     const comment = await createComment({
-      video: videoId,
+      video: videoId as MongoId,
       content,
       owner: req.user._id,
-      ...(parentComment ? { parentComment } : {}),
+      ...(parentComment && { parentComment }),
     });
 
     return res
@@ -64,10 +66,6 @@ const editComment = asyncHandler(
   ) => {
     const { commentId } = req.params;
     const { content } = req.body;
-
-    if (!content) {
-      throw new ApiError(400, "MISSING_REQUIRED_FIELD", "content is required.");
-    }
 
     const updatedContent = await updateComment(
       commentId,
