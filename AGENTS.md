@@ -21,10 +21,11 @@
 
 - `src/index.ts`: starts the server only after MongoDB and both cache and queue Redis clients connect.
 - `src/app.ts`: CORS, body limits, cookies, static files, versioned routers, then global error middleware last.
+- Cookies: `httpOnly`, `secure`, `sameSite: "none"` (`src/constants/cookieOption.ts`).
 - Flow: routes (`src/routes/*`, chains verifyJWT/validation/upload) → controllers (`src/controllers/*`, req/res only) → services (`src/services/*`, business logic: auth, search, likes, comments, users, videos, playlists, subscriptions, watch history) → models (`src/models/*`, Mongo schemas/indexes).
 - MongoDB/Mongoose = source of truth. Redis caches video details (`video:<videoId>`) and paginated video-search IDs (`search:<userId>:<hash>`, 10-minute TTL). Cloudinary = media storage; Multer writes temp files to `public/temp` pre-upload.
 - Routes: `/api/v1/user`, `/api/v1/video`, `/api/v1/health` [+ whatever step 2 confirms]
-- BullMQ uses the queue Redis client for video cleanup (`src/queues/cleanUp.queue.ts`), user-interaction cleanup (`src/queues/interactionCleanUp.queue.ts`) and a DLQ (`src/queues/dlq.queue.ts`); the cleanup worker batches related-document removal before deleting the video.
+- BullMQ (queue Redis client) — 3 queues in `src/queues/*.queue.ts`: cleanup, interaction cleanup, DLQ. Each has a matching worker in `src/workers/*.worker.ts` (if not then will be added, check dir).
 - Search: Atlas `$search` for user/title autocomplete and user search; `$vectorSearch` on `title_embedding` for semantic video retrieval (embeddings via `src/utils/vectorEmbedding.ts`).
 
 ## Conventions
@@ -37,4 +38,4 @@
 - Types: `src/types/Error/*` (ApiError, GlobalError), `Model/*`, `Services/*` (return/param types), `request.ts` (AuthTypedRequest, TypedRequestBody/Query/Params).
 - Zod schemas: `{ body?, params?, query? }`; `validation(schema)` middleware (`src/middlewares/validation.middleware.ts`) parses + overwrites req.body/params/query before controllers run.
 - Auth: `verifyJWT` on protected routes; JWT from `accessToken` cookie or `Authorization: Bearer`; user on `req.user` (typed `AuthTypedRequest`).
-- Cookies: `httpOnly`, `secure`, `sameSite: "none"` (`src/constants/cookieOption.ts`).
+- Workers batch-remove dependent docs before destructive deletes.
