@@ -12,7 +12,6 @@ import type {
   DeleteWatchHistorySchema,
   FetchWatchHistorySchema,
 } from "../validators/watchHistory.validator.js";
-import type { MongoId } from "../types/id.js";
 
 const saveWatchHistory = asyncHandler(
   async (req: AuthTypedRequest<CreateWatchHistorySchema>, res: Response) => {
@@ -28,12 +27,12 @@ const saveWatchHistory = asyncHandler(
 
 const fetchWatchHistory = asyncHandler(
   async (
-    req: AuthTypedRequest<null, null, FetchWatchHistorySchema>,
+    req: AuthTypedRequest<null, null, null, FetchWatchHistorySchema>,
     res: Response
   ) => {
     const { historyId } = req.query;
 
-    const history = await getWatchHistory(req.user._id, historyId as MongoId);
+    const history = await getWatchHistory(req.user._id, historyId);
 
     return res
       .status(200)
