@@ -48,7 +48,10 @@ const getVideoSignature = asyncHandler(
 );
 
 const uploadVideo = asyncHandler(
-  async (req: AuthTypedRequest<VideoUploadSchema>, res: Response) => {
+  async (
+    req: AuthTypedRequest<VideoUploadSchema, Express.Multer.File>,
+    res: Response
+  ) => {
     const {
       title,
       description,
@@ -58,7 +61,7 @@ const uploadVideo = asyncHandler(
       duration,
     } = req.body;
 
-    const thumbnailLocalPath = req.file?.path;
+    const thumbnailLocalPath = req.file.path;
 
     if (!thumbnailLocalPath)
       throw new ApiError(
