@@ -24,7 +24,6 @@ import {
 import {
   avatarSchema,
   coverImageSchema,
-  noRequestDataSchema,
 } from "../validators/file.validator.js";
 
 const userRouter = Router();
@@ -35,12 +34,8 @@ userRouter.route("/login").post(validation(loginSchema), loginUser);
 userRouter.route("/refresh-token").post(refreshAccessToken);
 
 // secure route
-userRouter
-  .route("/logout")
-  .post(verifyJWT, validation(noRequestDataSchema), logoutUser);
-userRouter
-  .route("/current-user")
-  .get(verifyJWT, validation(noRequestDataSchema), getCurrentUser);
+userRouter.route("/logout").post(verifyJWT, logoutUser);
+userRouter.route("/current-user").get(verifyJWT, getCurrentUser);
 userRouter
   .route("/details")
   .patch(

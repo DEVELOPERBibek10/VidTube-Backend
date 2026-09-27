@@ -22,16 +22,11 @@ import {
   type UpdateVideoSchema,
   type VideoUploadSchema,
 } from "../validators/video.validator.js";
-import {
-  thumbnailSchema,
-  noRequestDataSchema,
-} from "../validators/file.validator.js";
+import { thumbnailSchema } from "../validators/file.validator.js";
 
 const videoRouter = Router();
 
-videoRouter
-  .route("/signature")
-  .get(verifyJWT, validation(noRequestDataSchema), getVideoSignature);
+videoRouter.route("/signature").get(verifyJWT, getVideoSignature);
 videoRouter
   .route("/upload")
   .post(
