@@ -5,11 +5,13 @@ import type { MongoId } from "./id.js";
 
 export interface TypedRequest<
   TBody,
-  TParams extends Params = Params,
+  TParams extends Params | null = Params | null,
+  TQuery extends ParsedQs | null = ParsedQs | null,
   TFiles = Express.Multer.File[] | Record<string, Express.Multer.File[]> | null,
-> extends Omit<Request, "body" | "params" | "files" | "file"> {
+> extends Omit<Request, "body" | "params" | "query" | "files" | "file"> {
   body: TBody;
   params: TParams;
+  query: TQuery;
   files: TFiles;
   file: Express.Multer.File | null;
 }
@@ -34,8 +36,8 @@ interface UserRequest {
 export interface AuthTypedRequest<
   TBody,
   TFile extends Express.Multer.File | null = Express.Multer.File | null,
-  TParams extends Params | null = Params,
-  TQuery extends ParsedQs | null = ParsedQs,
+  TParams extends Params | null = Params | null,
+  TQuery extends ParsedQs | null = ParsedQs | null,
 > extends Omit<Request, "body" | "file" | "params" | "query"> {
   body: TBody;
   user: UserRequest;
