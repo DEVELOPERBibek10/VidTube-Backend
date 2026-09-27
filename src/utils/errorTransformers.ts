@@ -14,7 +14,7 @@ export const handleMongoDuplicateKey = (
     if (match && match.length !== 0 && match[1]) duplicatedFields = [match[1]];
   }
   if (duplicatedFields.length === 0) {
-    return new ApiError(
+    throw new ApiError(
       409,
       "DUPLICATE_KEY_ERROR",
       "A record with these credentials already exists.",
@@ -24,7 +24,7 @@ export const handleMongoDuplicateKey = (
 
   const parsedErrors = duplicatedFields.map((f) => `${f} must be unique`);
 
-  return new ApiError(
+  throw new ApiError(
     409,
     "DUPLICATE_KEY_ERROR",
     `Duplicate value for field(s): ${duplicatedFields.join(", ")}`,
@@ -38,11 +38,11 @@ export const handleMulterError = (err: MulterError): ApiError => {
     message = "File is too large. Max limit is 10MB.";
   if (err.code === "LIMIT_UNEXPECTED_FILE") message = "Unexpected file field.";
 
-  return new ApiError(400, "MULTER_ERROR", message);
+  throw new ApiError(400, "MULTER_ERROR", message);
 };
 
 export const handleCastError = (err: MongooseError.CastError): ApiError => {
-  return new ApiError(
+  throw new ApiError(
     400,
     "CAST_ERROR",
     `Invalid resource identifier: ${err.path}`
@@ -51,10 +51,10 @@ export const handleCastError = (err: MongooseError.CastError): ApiError => {
 
 export const handleParseError = (err: HttpError): ApiError => {
   if (err.type === "entity.parse.failed") {
-    return new ApiError(400, "JSON_PARSE_ERROR", "Invalid JSON body provided");
+    throw new ApiError(400, "JSON_PARSE_ERROR", "Invalid JSON body provided");
   }
   if (err.type === "entity.too.large") {
-    return new ApiError(
+    throw new ApiError(
       400,
       "PAYLOAD_TOO_LARGE",
       "Payload too large. Max limit is 20KB."
@@ -63,7 +63,7 @@ export const handleParseError = (err: HttpError): ApiError => {
   if (err.type === "encoding.unsupported") {
     throw new ApiError(400, "UNSUPPORTED_ENCODING", "Unsupported encoding");
   }
-  return new ApiError(400, "PARSE_ERROR", "Failed to parse request body");
+  throw new ApiError(400, "PARSE_ERROR", "Failed to parse request body");
 };
 
 export const handleMongooseValidationError = (
@@ -73,7 +73,7 @@ export const handleMongooseValidationError = (
     .map((err) => err.message)
     .join(",");
 
-  return new ApiError(
+  throw new ApiError(
     400,
     "VALIDATION_ERROR",
     messages || "Databse validation failed"
