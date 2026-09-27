@@ -28,7 +28,7 @@ export const fetchWatchHistorySchema = z.object({
 });
 
 export const deleteWatchHistorySchema = z.object({
-  params: z.strictObject({
+  params: z.object({
     historyId: z
       .string()
       .trim()
