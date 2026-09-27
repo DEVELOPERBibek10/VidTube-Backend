@@ -1,8 +1,8 @@
 import z from "zod";
 import { validateId } from "../utils/validateId.js";
 
-const videoLikeSchema = z.strictObject({
-  params: z.strictObject({
+const videoLikeSchema = z.object({
+  params: z.object({
     videoId: z
       .string()
       .trim()
@@ -10,8 +10,8 @@ const videoLikeSchema = z.strictObject({
   }),
 });
 
-const commentLikeSchema = z.strictObject({
-  params: z.strictObject({
+const commentLikeSchema = z.object({
+  params: z.object({
     commentId: z
       .string()
       .trim()

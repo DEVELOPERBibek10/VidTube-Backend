@@ -22,8 +22,8 @@ const createCommentSchema = z.strictObject({
   }),
 });
 
-const fetchCommentsSchema = z.strictObject({
-  query: z.strictObject({
+const fetchCommentsSchema = z.object({
+  query: z.object({
     videoId: z
       .string()
       .trim()
@@ -47,7 +47,7 @@ const fetchCommentsSchema = z.strictObject({
   }),
 });
 
-const editCommentSchema = z.strictObject({
+const editCommentSchema = z.object({
   params: z.strictObject({
     commentId: z
       .string()
@@ -62,7 +62,7 @@ const editCommentSchema = z.strictObject({
   }),
 });
 
-const deleteCommentSchema = z.strictObject({
+const deleteCommentSchema = z.object({
   params: z.strictObject({
     commentId: z
       .string()
@@ -81,6 +81,9 @@ export {
 };
 
 export type CreateCommentSchema = z.infer<typeof createCommentSchema>["body"];
+export type CreateCommentParamsSchema = z.infer<
+  typeof createCommentSchema
+>["params"];
 export type FetchCommentsSchema = z.infer<typeof fetchCommentsSchema>["query"];
 export type EditCommentSchema = z.infer<typeof editCommentSchema>;
 export type DeleteCommentSchema = z.infer<typeof deleteCommentSchema>["params"];

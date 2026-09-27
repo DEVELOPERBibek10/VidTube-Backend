@@ -3,7 +3,6 @@ import { validateId } from "../utils/validateId.js";
 import { multerFileSchema } from "./file.validator.js";
 
 export const videoRequestSchema = z.strictObject({
-  file: multerFileSchema,
   body: z.strictObject({
     title: z
       .string()
@@ -33,6 +32,7 @@ export const videoRequestSchema = z.strictObject({
       })
       .transform((val) => val === "true"),
   }),
+  file: multerFileSchema,
 });
 
 export const updateVideoSchema = z.strictObject({
