@@ -12,19 +12,22 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import type {
   CreateCommentSchema,
+  CreateCommentParamsSchema,
   DeleteCommentSchema,
   EditCommentSchema,
   FetchCommentsSchema,
 } from "../validators/comment.validator.js";
-import type { MongoId } from "../types/id.js";
 
 const addComment = asyncHandler(
-  async (req: AuthTypedRequest<CreateCommentSchema>, res: Response) => {
+  async (
+    req: AuthTypedRequest<CreateCommentSchema, null, CreateCommentParamsSchema>,
+    res: Response
+  ) => {
     const { videoId } = req.params;
     const { content, parentComment } = req.body;
 
     const comment = await createComment({
-      video: videoId as MongoId,
+      video: videoId,
       content,
       owner: req.user._id,
       ...(parentComment && { parentComment }),
@@ -37,14 +40,17 @@ const addComment = asyncHandler(
 );
 
 const fetchComments = asyncHandler(
-  async (req: AuthTypedRequest<FetchCommentsSchema>, res: Response) => {
+  async (
+    req: AuthTypedRequest<null, null, null, FetchCommentsSchema>,
+    res: Response
+  ) => {
     const { videoId, cursor, parentComment } = req.query;
 
     const comments = await getAllComments({
-      videoId: new Types.ObjectId(videoId as string),
-      cursor: cursor ? new Types.ObjectId(cursor as string) : null,
+      videoId: new Types.ObjectId(videoId),
+      cursor: cursor ? new Types.ObjectId(cursor) : null,
       parentComment: parentComment
-        ? new Types.ObjectId(parentComment as string)
+        ? new Types.ObjectId(parentComment)
         : undefined,
       userId: req.user._id,
     });
