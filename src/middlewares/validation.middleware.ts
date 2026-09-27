@@ -1,8 +1,6 @@
 import type { NextFunction } from "express";
-import { ZodError, type ZodObject } from "zod";
+import { ZodError, type ZodObject, type ZodType } from "zod";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import type { ZodType } from "zod";
-import type { AuthTypedRequest, TypedRequest } from "../types/request.js";
 import { ApiError } from "../utils/ApiError.js";
 import type { Params } from "express-serve-static-core";
 import type { ParsedQs } from "qs";
@@ -14,57 +12,75 @@ type RequestSchema = ZodObject<{
   file?: ZodType;
 }>;
 
+type ValidationRequest = {
+  body: Record<string, unknown>;
+  params: Params;
+  query: ParsedQs;
+  file: Express.Multer.File;
+};
+
 function normalizeSection(value: unknown): unknown {
-  if (value === undefined || value === null) return null;
-  if (typeof value === "object" && Object.keys(value).length === 0) return null;
+  if (value === undefined || value === null) {
+    return null;
+  }
+
+  if (
+    typeof value === "object" &&
+    !Array.isArray(value) &&
+    Object.keys(value).length === 0
+  ) {
+    return null;
+  }
+
   return value;
 }
 
-export const validation = (schema: RequestSchema) =>
-  asyncHandler(
-    async (
-      req:
-        | TypedRequest<Record<string, unknown>>
-        | AuthTypedRequest<Record<string, unknown> | null>,
-      _,
-      next: NextFunction
-    ) => {
-      try {
-        const parseData = await schema.parseAsync({
-          body: req.body ?? {},
-          params: req.params ?? {},
-          query: req.query ?? {},
-          file: req.file ?? null,
-        });
-        req.body = normalizeSection(parseData.body) as Record<
-          string,
-          unknown
-        > | null;
-        req.params = normalizeSection(parseData.params) as Params;
-        req.query = normalizeSection(parseData.query) as ParsedQs;
-        req.file = normalizeSection(
-          parseData.file
-        ) as Express.Multer.File | null;
-        next();
-      } catch (error) {
-        if (error instanceof ZodError) {
-          const validationIssues = error.issues.map((issue) => ({
-            field: issue.path.join("."),
-            message: issue.message,
-          }));
+function formatValidationError(error: ZodError): ApiError {
+  const validationIssues = error.issues.map((issue) => ({
+    field: issue.path.join("."),
+    message: issue.message,
+  }));
 
-          const summaryMessage = validationIssues
-            .map((it) => `${it.field}: ${it.message}`)
-            .join(", ");
+  const summaryMessage = validationIssues
+    .map((issue) => `${issue.field}: ${issue.message}`)
+    .join(", ");
 
-          throw new ApiError(
-            400,
-            "VALIDATION_ERROR",
-            summaryMessage || error.message,
-            validationIssues
-          );
-        }
-        throw error;
-      }
-    }
+  return new ApiError(
+    400,
+    "VALIDATION_ERROR",
+    summaryMessage || error.message,
+    validationIssues
   );
+}
+
+export const validation = (schema: RequestSchema) =>
+  asyncHandler(async (req: ValidationRequest, _res, next: NextFunction) => {
+    try {
+      const parsedRequest = await schema.parseAsync({
+        body: req.body ?? {},
+        params: req.params ?? {},
+        query: req.query ?? {},
+        file: req.file,
+      });
+
+      req.body = normalizeSection(
+        parsedRequest.body
+      ) as ValidationRequest["body"];
+      req.params = normalizeSection(
+        parsedRequest.params
+      ) as ValidationRequest["params"];
+      req.query = normalizeSection(
+        parsedRequest.query
+      ) as ValidationRequest["query"];
+      req.file = normalizeSection(
+        parsedRequest.file
+      ) as ValidationRequest["file"];
+      next();
+    } catch (error) {
+      if (error instanceof ZodError) {
+        throw formatValidationError(error);
+      }
+
+      throw error;
+    }
+  });
