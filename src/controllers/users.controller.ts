@@ -164,8 +164,8 @@ const updateDetails = asyncHandler(
 );
 
 const updateAvatar = asyncHandler(
-  async (req: AuthTypedRequest<null>, res: Response) => {
-    const avatarLocalFile = req.file?.path;
+  async (req: AuthTypedRequest<null, Express.Multer.File>, res: Response) => {
+    const avatarLocalFile = req.file.path;
 
     if (!avatarLocalFile) {
       throw new ApiError(
@@ -188,8 +188,8 @@ const updateAvatar = asyncHandler(
 );
 
 const updateCoverImage = asyncHandler(
-  async (req: AuthTypedRequest<null>, res: Response) => {
-    const coverImageLocalFile = req.file?.path;
+  async (req: AuthTypedRequest<null, Express.Multer.File>, res: Response) => {
+    const coverImageLocalFile = req.file.path;
 
     if (!coverImageLocalFile)
       throw new ApiError(400, "Cover image is required.");
@@ -254,15 +254,11 @@ const getUserSearchSuggestions = asyncHandler(
 
 const searchUsers = asyncHandler(
   async (
-    req: AuthTypedRequest<null, null, UserSearchQuerySchema>,
+    req: AuthTypedRequest<null, null, null, UserSearchQuerySchema>,
     res: Response
   ) => {
     const { username, searchToken } = req.query;
-    const users = await userSearch(
-      req.user._id,
-      username as string | undefined,
-      searchToken as string | undefined
-    );
+    const users = await userSearch(req.user._id, username, searchToken);
 
     return res
       .status(200)
