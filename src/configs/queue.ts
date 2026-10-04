@@ -10,7 +10,7 @@ const config = {
     retries: 3,
     backoff: {
       type: "exponential",
-      delay: 2000,
+      delay: 3000,
     },
   },
 };
