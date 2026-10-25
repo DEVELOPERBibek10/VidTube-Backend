@@ -1,10 +1,10 @@
 import { Worker, type Job } from "bullmq";
 import { queueName } from "../queues/cleanUp.queue.js";
 import { redisClientQueue } from "../configs/redis.js";
-import cleanUp from "../utils/cleanUp.js";
+import cleanUp from "../services/cleanUp.service.js";
 import { Video } from "../models/video.model.js";
-import { asyncHandler } from "../utils/asyncHandler.js";
-import { ApiError } from "../utils/ApiError.js";
+import { deleteVideoFromCloudinary } from "../utils/cloudinary.js";
+import { VideoDeletionStatus } from "../types/Model/Video.js";
 
 type CleanUpJobData = {
   deletionId: string;
@@ -13,11 +13,24 @@ type CleanUpJobData = {
 const cleanUpWorker = new Worker(
   queueName,
   async (job: Job<CleanUpJobData>) => {
-    if (job.id === `cascade-video-deletion-${job.data.deletionId}`) {
-      await Video.findByIdAndDelete(job.data.deletionId);
+    const video = await Video.findByIdAndUpdate(
+      job.data.deletionId,
+      { $set: { deletionStatus: VideoDeletionStatus.IN_PROGRESS } },
+      { new: true }
+    );
+
+    if (!video) {
       await cleanUp(job.data.deletionId);
       return job.name;
     }
+
+    await deleteVideoFromCloudinary(
+      video.videoFile.publicId,
+      video.thumbnail.publicId
+    );
+    await cleanUp(job.data.deletionId);
+
+    return job.name;
   },
   {
     connection: redisClientQueue,
@@ -27,20 +40,23 @@ const cleanUpWorker = new Worker(
     },
   }
 );
-cleanUpWorker.on("failed", (job, err) => {
-  if (job) {
-    asyncHandler(() => throwError(job, err));
-  }
-});
+cleanUpWorker.on("failed", (job, error) => {
+  if (!job) return;
 
-function throwError(job: Job<CleanUpJobData>, err: Error) {
-  if (job.attemptsMade === 4) {
-    console.error(`Job ${job.id}. Error: ${err.message}`);
-    throw new ApiError(
-      500,
-      "DELETION_FAILED",
-      `Failed to delete video with ID ${job.data.deletionId}.`
+  console.error(
+    `Cleanup job ${job.id} failed on attempt ${job.attemptsMade}:`,
+    error.message
+  );
+  const maxAttempts = job.opts.attempts ?? 1;
+  if (job.attemptsMade < maxAttempts) return;
+
+  void Video.findByIdAndUpdate(job.data.deletionId, {
+    $set: { deletionStatus: VideoDeletionStatus.FAILED },
+  }).catch((err: unknown) => {
+    console.error(
+      `Failed to update deletion status for video ${job.data.deletionId}:`,
+      err
     );
-  }
-}
+  });
+});
 export default cleanUpWorker;
