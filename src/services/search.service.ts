@@ -229,6 +229,7 @@ async function videoSearch(
     _id: {
       $in: videoIds,
     },
+    isDeleted: false,
   });
   if (videos.length === 0) {
     return {
