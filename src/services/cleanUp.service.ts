@@ -49,7 +49,7 @@ async function cleanUp(deletionId: MongoId): Promise<void> {
       Comment.deleteMany({ _id: { $in: commentIds } }),
       WatchHistory.deleteMany({ _id: { $in: watchHistoryIds } }),
       Playlist.updateMany(
-        { videos: { $in: playlistIds } },
+        { _id: { $in: playlistIds } },
         { $pull: { videos: deletionId } }
       ),
     ]);
@@ -62,8 +62,8 @@ async function cleanUp(deletionId: MongoId): Promise<void> {
     ) {
       await wait(BATCH_DELAY_MS);
     }
-    await Video.findByIdAndDelete(deletionId);
   }
+  await Video.findByIdAndDelete(deletionId);
 }
 
 export default cleanUp;
