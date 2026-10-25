@@ -7,7 +7,7 @@ const config = {
     removeOnFail: {
       age: 6 * 3600,
     },
-    retries: 3,
+    attempts: 3,
     backoff: {
       type: "exponential",
       delay: 3000,
