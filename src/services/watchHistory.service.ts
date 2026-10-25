@@ -46,7 +46,7 @@ async function getWatchHistory(userId: MongoId, historyId?: MongoId | null) {
         foreignField: "_id",
         as: "videos",
         pipeline: [
-          { $match: { isPublished: true } },
+          { $match: { isPublished: true, isDeleted: false } },
           {
             $lookup: {
               from: "users",
