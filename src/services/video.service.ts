@@ -14,6 +14,8 @@ import { WatchHistory } from "../models/watchHistory.model.js";
 import { pageinationHelper } from "../utils/paginationHelper.js";
 import type { MongoId } from "../types/id.js";
 import type { WatchHistoryDocument } from "../types/Services/watchHistory.js";
+import { cleanUpQueue } from "../queues/cleanUp.queue.js";
+import { VideoDeletionStatus } from "../types/Model/Video.js";
 
 function getSignature() {
   const folder = "vidtube/videos";
@@ -173,54 +175,26 @@ async function reviseThumbnail(videoId: MongoId, userId: MongoId) {
 }
 
 async function removeVideo(videoId: MongoId, owner: MongoId): Promise<void> {
-  const video = await Video.findOne({
-    _id: videoId,
-    owner,
-  });
+  const video = await Video.findOneAndUpdate(
+    { _id: videoId, owner, isDeleted: false },
+    {
+      $set: {
+        isDeleted: true,
+        deletionStatus: VideoDeletionStatus.PENDING,
+      },
+    },
+    { new: true }
+  );
 
   if (!video) {
     throw new ApiError(404, "NOT_FOUND", "Video not found");
   }
 
-  const response = await Promise.allSettled([
-    deleteFile(video.thumbnail.publicId),
-    deleteFile(video.videoFile.publicId, "video"),
-  ]);
-  const rejectedDeletions = response
-    .filter(
-      (result): result is PromiseRejectedResult => result.status === "rejected"
-    )
-    .map((result) => {
-      const reason: unknown = result.reason;
-      return reason;
-    });
-  const hasClientError = rejectedDeletions.some(
-    (reason) => reason instanceof ApiError && reason.statusCode === 400
+  await cleanUpQueue.add(
+    "cascade-video-deletion",
+    { deletionId: video._id.toString() },
+    { jobId: `cascade-video-deletion-${video._id.toString()}` }
   );
-  const failedDeletions = rejectedDeletions.map((reason) =>
-    reason instanceof Error ? reason.message : String(reason)
-  );
-
-  if (failedDeletions.length > 0) {
-    console.error(
-      `Failed to delete assets for video ${videoId as string}: ${failedDeletions.join(
-        ", "
-      )}`
-    );
-    throw new ApiError(
-      hasClientError ? 400 : 502,
-      hasClientError
-        ? "ASSET_DELETION_MALFORMED"
-        : "STORAGE_SERVICE_UNAVAILABLE",
-      "Video deletion aborted due to asset clearance failure.",
-      failedDeletions
-    );
-  }
-
-  await Video.findOneAndDelete({
-    _id: videoId,
-    owner,
-  });
 }
 
 async function getVideo(
@@ -233,7 +207,11 @@ async function getVideo(
   }
   const video = await Video.aggregate<VideoDocument>([
     {
-      $match: { _id: new mongoose.Types.ObjectId(videoId), isPublished: true },
+      $match: {
+        _id: new mongoose.Types.ObjectId(videoId),
+        isPublished: true,
+        isDeleted: false,
+      },
     },
     {
       $lookup: {
@@ -244,6 +222,7 @@ async function getVideo(
         pipeline: [
           {
             $project: {
+              _id: 0,
               username: 1,
               avatar: 1,
               subscribers: 1,
@@ -346,6 +325,7 @@ async function getEveryVideo(videoId?: MongoId, userId?: MongoId) {
         isPublished: true,
         owner: new mongoose.Types.ObjectId(userId),
         _id: { $lt: new mongoose.Types.ObjectId(videoId) },
+        isDeleted: false,
       },
     });
   } else if (videoId) {
@@ -353,6 +333,7 @@ async function getEveryVideo(videoId?: MongoId, userId?: MongoId) {
       $match: {
         isPublished: true,
         _id: { $lt: new mongoose.Types.ObjectId(videoId) },
+        isDeleted: false,
       },
     });
   } else if (userId) {
@@ -366,6 +347,7 @@ async function getEveryVideo(videoId?: MongoId, userId?: MongoId) {
     pipeline.push({
       $match: {
         isPublished: true,
+        isDeleted: false,
       },
     });
   }
