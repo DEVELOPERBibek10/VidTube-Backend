@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import type { IVideo } from "../types/Model/Video.js";
+import { VideoDeletionStatus, type IVideo } from "../types/Model/Video.js";
 
 const videoSchema = new Schema<IVideo>(
   {
@@ -53,6 +53,15 @@ const videoSchema = new Schema<IVideo>(
     comments: {
       type: Number,
       default: 0,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+    deletionStatus: {
+      type: String,
+      enum: Object.values(VideoDeletionStatus),
+      default: VideoDeletionStatus.NOT_DELETED,
     },
     title_embedding: {
       type: [Number],
