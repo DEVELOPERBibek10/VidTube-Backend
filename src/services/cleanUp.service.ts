@@ -1,8 +1,10 @@
 import { Comment } from "../models/comment.model.js";
 import { Like } from "../models/like.model.js";
 import { Playlist } from "../models/playlist.model.js";
+import { Video } from "../models/video.model.js";
 import { WatchHistory } from "../models/watchHistory.model.js";
 import type { MongoId } from "../types/id.js";
+import { likeableType } from "../types/Model/Like.js";
 
 const BATCH_SIZE = 1000;
 const BATCH_DELAY_MS = 2500;
@@ -12,10 +14,14 @@ function wait(duration: number): Promise<void> {
 }
 
 async function cleanUp(deletionId: MongoId): Promise<void> {
-  // TODO: Add a checkpoint to skip the wait if the deletion is already complete or to retry if it fails.
   while (true) {
     const [likes, comments, watchHistories, playlists] = await Promise.all([
-      Like.find({ likable: deletionId }, { _id: 1 }).limit(BATCH_SIZE).lean(),
+      Like.find(
+        { likable: deletionId, likeableType: likeableType.video },
+        { _id: 1 }
+      )
+        .limit(BATCH_SIZE)
+        .lean(),
       Comment.find({ video: deletionId }, { _id: 1 }).limit(BATCH_SIZE).lean(),
       WatchHistory.find({ video: deletionId }, { _id: 1 })
         .limit(BATCH_SIZE)
@@ -56,8 +62,8 @@ async function cleanUp(deletionId: MongoId): Promise<void> {
     ) {
       await wait(BATCH_DELAY_MS);
     }
+    await Video.findByIdAndDelete(deletionId);
   }
-  // TODO: Add a checkpoint for media deletion to skip the wait if the deletion is completed or to retry if it fails.
 }
 
 export default cleanUp;
