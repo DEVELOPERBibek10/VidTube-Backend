@@ -99,4 +99,37 @@ const deleteFile = async (
   }
 };
 
-export { uploadFile, deleteFile };
+const deleteVideoFromCloudinary = async (
+  videoPublicId: string,
+  thumbnailPublicId: string
+): Promise<void> => {
+  const response = await Promise.allSettled([
+    deleteFile(thumbnailPublicId),
+    deleteFile(videoPublicId, "video"),
+  ]);
+  const rejectedDeletions = response
+    .filter(
+      (result): result is PromiseRejectedResult => result.status === "rejected"
+    )
+    .map((result): unknown => result.reason);
+
+  if (rejectedDeletions.length > 0) {
+    const hasClientError = rejectedDeletions.some(
+      (reason) => reason instanceof ApiError && reason.statusCode === 400
+    );
+    const failedDeletions = rejectedDeletions.map((reason) =>
+      reason instanceof Error ? reason.message : String(reason)
+    );
+
+    throw new ApiError(
+      hasClientError ? 400 : 502,
+      hasClientError
+        ? "ASSET_DELETION_MALFORMED"
+        : "STORAGE_SERVICE_UNAVAILABLE",
+      "Video deletion aborted due to asset clearance failure.",
+      failedDeletions
+    );
+  }
+};
+
+export { uploadFile, deleteFile, deleteVideoFromCloudinary };
