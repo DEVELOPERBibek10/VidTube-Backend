@@ -5,30 +5,40 @@ import { Video } from "../models/video.model.js";
 import { WatchHistory } from "../models/watchHistory.model.js";
 import type { MongoId } from "../types/id.js";
 import { likeableType } from "../types/Model/Like.js";
+import { deleteVideoFromCloudinary } from "../utils/cloudinary.js";
+
+type cleanUpIds = {
+  videoId: MongoId;
+  mediaId: {
+    videoPublicId: string;
+    thumbnailPublicId: string;
+  };
+};
 
 const BATCH_SIZE = 1000;
-const BATCH_DELAY_MS = 2500;
+const BATCH_DELAY_MS = 2000;
 
 function wait(duration: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, duration));
 }
 
-async function cleanUp(deletionId: MongoId): Promise<void> {
+async function cleanUp(deletionId: cleanUpIds): Promise<void> {
+  const { videoId } = deletionId;
+  const { videoPublicId, thumbnailPublicId } = deletionId.mediaId;
+  await deleteVideoFromCloudinary(videoPublicId, thumbnailPublicId);
   while (true) {
     const [likes, comments, watchHistories, playlists] = await Promise.all([
       Like.find(
-        { likable: deletionId, likeableType: likeableType.video },
+        { likable: videoId, likeableType: likeableType.video },
         { _id: 1 }
       )
         .limit(BATCH_SIZE)
         .lean(),
-      Comment.find({ video: deletionId }, { _id: 1 }).limit(BATCH_SIZE).lean(),
-      WatchHistory.find({ video: deletionId }, { _id: 1 })
+      Comment.find({ video: videoId }, { _id: 1 }).limit(BATCH_SIZE).lean(),
+      WatchHistory.find({ video: videoId }, { _id: 1 })
         .limit(BATCH_SIZE)
         .lean(),
-      Playlist.find({ videos: deletionId }, { _id: 1 })
-        .limit(BATCH_SIZE)
-        .lean(),
+      Playlist.find({ videos: videoId }, { _id: 1 }).limit(BATCH_SIZE).lean(),
     ]);
     if (
       likes.length === 0 &&
