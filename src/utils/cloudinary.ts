@@ -81,7 +81,13 @@ const deleteFile = async (
     });
   } catch (error: unknown) {
     if (error instanceof Error && "http_code" in error) {
-      console.error("CLOUDINARY ERROR:", error);
+      if (!error.http_code) {
+        throw new ApiError(
+          503,
+          "NETWORK_ERROR",
+          "Could not connect to Cloud Service."
+        );
+      }
       if (error.http_code === 400 || error.http_code === 401) {
         throw new ApiError(
           400,
@@ -90,12 +96,7 @@ const deleteFile = async (
         );
       }
     }
-    console.error("Unexpected Cloudinary Error:", error);
-    throw new ApiError(
-      502,
-      "STORAGE_SERVICE_UNAVAILABLE",
-      "Cloudinary is unreachable. Deletion aborted."
-    );
+    throw error;
   }
 };
 
