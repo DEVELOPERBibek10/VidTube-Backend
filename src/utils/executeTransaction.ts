@@ -41,7 +41,7 @@ export async function executeTransaction<T>(
         isRetryableError(error) &&
         attempt < maxRetries
       ) {
-        console.log(
+        console.error(
           `Transaction attempt ${attempt} failed, reason: ${error.message}, Retrying...`
         );
         await delay(retryDelay * attempt);
