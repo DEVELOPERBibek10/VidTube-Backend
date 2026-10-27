@@ -21,7 +21,7 @@ async function generateAccessAndRefreshToken(userId: MongoId) {
 
     return { accessToken, refreshToken };
   } catch (error) {
-    console.log("Unexpected error (generate token): ", error);
+    console.error("Unexpected error (generate token): ", error);
     throw new ApiError(
       500,
       "INTERNAL_SERVER_ERROR",
