@@ -44,6 +44,16 @@ const userSchema = new Schema<IUserDocument>(
         default: "",
       },
     },
+    bio: {
+      type: String,
+      default: "",
+    },
+    watchHistory: {
+      type: [Schema.Types.ObjectId],
+      ref: "Video",
+      default: [],
+      select: false,
+    },
     password: {
       type: String,
       required: [true, "Password is required"],

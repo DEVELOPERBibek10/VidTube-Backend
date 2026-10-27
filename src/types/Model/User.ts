@@ -14,6 +14,7 @@ export interface IUser {
     url: string;
     publicId: string;
   };
+  bio: string;
   watchHistory: Types.ObjectId[] | [];
   password: string;
   refreshToken: string;
