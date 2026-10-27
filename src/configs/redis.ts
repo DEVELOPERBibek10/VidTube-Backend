@@ -5,6 +5,13 @@ const isSecureConnection =
 
 const redisClientCache = new Redis(process.env.UPSTASH_REDIS_URL!, {
   maxRetriesPerRequest: 3,
+  retryStrategy: function (times: number) {
+    // Retry strategy for connection attempts
+    if (times > 3) {
+      return null;
+    }
+    return Math.min(times * 100, 3000); // Wait time between retries (in milliseconds)
+  },
   enableReadyCheck: false,
   ...(isSecureConnection && { tls: { rejectUnauthorized: false } }),
 });
