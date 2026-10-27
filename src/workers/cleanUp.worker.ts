@@ -1,9 +1,8 @@
 import { Worker, type Job } from "bullmq";
 import { queueName } from "../queues/cleanUp.queue.js";
 import { redisClientQueue } from "../configs/redis.js";
-import cleanUp from "../services/cleanUp.service.js";
+import cleanUp from "../services/videoDeletion.service.js";
 import { Video } from "../models/video.model.js";
-import { deleteVideoFromCloudinary } from "../utils/cloudinary.js";
 import { VideoDeletionStatus } from "../types/Model/Video.js";
 
 type CleanUpJobData = {
@@ -20,15 +19,16 @@ const cleanUpWorker = new Worker(
     );
 
     if (!video) {
-      await cleanUp(job.data.deletionId);
       return job.name;
     }
 
-    await deleteVideoFromCloudinary(
-      video.videoFile.publicId,
-      video.thumbnail.publicId
-    );
-    await cleanUp(job.data.deletionId);
+    await cleanUp({
+      videoId: job.data.deletionId,
+      mediaId: {
+        videoPublicId: video.videoFile.publicId,
+        thumbnailPublicId: video.thumbnail.publicId,
+      },
+    });
 
     return job.name;
   },
