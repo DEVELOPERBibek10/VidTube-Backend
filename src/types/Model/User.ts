@@ -1,4 +1,3 @@
-import { type Types } from "mongoose";
 import type { MongoId } from "../id.js";
 
 export interface IUser {
@@ -15,7 +14,6 @@ export interface IUser {
     publicId: string;
   };
   bio: string;
-  watchHistory: Types.ObjectId[] | [];
   password: string;
   refreshToken: string;
   subscribers: number;
