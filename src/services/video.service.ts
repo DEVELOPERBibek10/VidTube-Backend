@@ -6,7 +6,7 @@ import type {
   VideoDocument,
   PaginatedVideoDocument,
 } from "../types/Services/video.js";
-import { deleteFile, uploadFile } from "../utils/cloudinary.js";
+import { deleteVideoFromCloudinary, uploadFile } from "../utils/cloudinary.js";
 import { Video } from "../models/video.model.js";
 import mongoose from "mongoose";
 import { redisClientCache } from "../configs/redis.js";
@@ -84,16 +84,15 @@ async function upload(videoDoc: VideoUpload) {
 
     return createdVideo;
   } catch (error: unknown) {
-    const response = await Promise.allSettled([
-      deleteFile(thumbnail.public_id),
-      deleteFile(videoPublicId, "video"),
-    ]);
-    if (response[0].status === "rejected") {
-      console.error(`Thumbnai deleteion failed: ${response[0].reason}`);
-    }
-    if (response[1].status === "rejected") {
-      console.error(`Video deleteion failed: ${response[1].reason}`);
-    }
+    await deleteVideoFromCloudinary(videoPublicId, thumbnail.public_id).catch(
+      (err: unknown) => {
+        console.error(
+          "Cleanup Error (Cloudinary deletion failed):",
+          err instanceof Error || err instanceof ApiError ? err.message : err
+        );
+      }
+    );
+
     throw error;
   }
 }
