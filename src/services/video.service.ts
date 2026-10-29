@@ -175,7 +175,7 @@ async function reviseThumbnail(videoId: MongoId, userId: MongoId) {
 
 async function removeVideo(videoId: MongoId, owner: MongoId): Promise<void> {
   const video = await Video.findOneAndUpdate(
-    { _id: videoId, owner, isDeleted: true },
+    { _id: videoId, owner, isDeleted: false },
     {
       $set: {
         isDeleted: true,
