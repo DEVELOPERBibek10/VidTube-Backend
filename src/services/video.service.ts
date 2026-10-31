@@ -175,10 +175,10 @@ async function reviseThumbnail(videoId: MongoId, userId: MongoId) {
 
 async function removeVideo(videoId: MongoId, owner: MongoId): Promise<void> {
   const video = await Video.findOneAndUpdate(
-    { _id: videoId, owner, isDeleted: false },
+    { _id: videoId, owner, deletedAt: null },
     {
       $set: {
-        isDeleted: true,
+        deletedAt: new Date(),
         deletionStatus: VideoDeletionStatus.PENDING,
       },
     },
@@ -209,7 +209,7 @@ async function getVideo(
       $match: {
         _id: new mongoose.Types.ObjectId(videoId),
         isPublished: true,
-        isDeleted: false,
+        deletedAt: null,
       },
     },
     {
@@ -324,7 +324,7 @@ async function getEveryVideo(videoId?: MongoId, userId?: MongoId) {
         isPublished: true,
         owner: new mongoose.Types.ObjectId(userId),
         _id: { $lt: new mongoose.Types.ObjectId(videoId) },
-        isDeleted: false,
+        deletedAt: null,
       },
     });
   } else if (videoId) {
@@ -332,7 +332,7 @@ async function getEveryVideo(videoId?: MongoId, userId?: MongoId) {
       $match: {
         isPublished: true,
         _id: { $lt: new mongoose.Types.ObjectId(videoId) },
-        isDeleted: false,
+        deletedAt: null,
       },
     });
   } else if (userId) {
@@ -346,7 +346,7 @@ async function getEveryVideo(videoId?: MongoId, userId?: MongoId) {
     pipeline.push({
       $match: {
         isPublished: true,
-        isDeleted: false,
+        deletedAt: null,
       },
     });
   }
