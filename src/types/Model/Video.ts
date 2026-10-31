@@ -24,7 +24,7 @@ export interface IVideo {
   owner: mongoose.Types.ObjectId;
   likes: number;
   comments: number;
-  isDeleted: boolean;
+  deletedAt: Date | null;
   deletionStatus: VideoDeletionStatus;
   title_embedding: number[];
   createdAt: Date;
