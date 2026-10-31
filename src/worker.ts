@@ -4,6 +4,7 @@ import connectDB from "./db/index.js";
 import { listenRedis, redisClientQueue } from "./configs/redis.js";
 import cleanUpWorker from "./workers/cleanUp.worker.js";
 import { recoverVideoDeletions } from "./services/recoverVideoDeletions.service.js";
+import { scheduleVideoDeletions } from "./schedulers/videoDeletion.scheduler.js";
 
 let isShuttingDown = false;
 
@@ -13,8 +14,9 @@ async function startWorker() {
     listenRedis(redisClientQueue),
   ]);
   if (database.every((db) => db)) {
-    await cleanUpWorker.waitUntilReady();
+    await cleanUpWorker.run();
     await recoverVideoDeletions();
+    await scheduleVideoDeletions();
   }
 }
 
