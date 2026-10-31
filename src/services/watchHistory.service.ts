@@ -16,7 +16,7 @@ async function createHistory(
 }
 
 async function getWatchHistory(userId: MongoId, historyId?: MongoId | null) {
-  const pipeline = [];
+  const pipeline: mongoose.PipelineStage[] = [];
   const limit = 15;
 
   if (historyId) {
@@ -46,7 +46,7 @@ async function getWatchHistory(userId: MongoId, historyId?: MongoId | null) {
         foreignField: "_id",
         as: "videos",
         pipeline: [
-          { $match: { isPublished: true, isDeleted: false } },
+          { $match: { isPublished: true, deletedAt: null } },
           {
             $lookup: {
               from: "users",
@@ -84,7 +84,7 @@ async function getWatchHistory(userId: MongoId, historyId?: MongoId | null) {
       },
     }
   );
-  const history = await WatchHistory.aggregate(pipeline as []);
+  const history = await WatchHistory.aggregate(pipeline);
 
   return pageinationHelper(history, limit, false);
 }
