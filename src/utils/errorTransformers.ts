@@ -2,6 +2,7 @@ import type { MulterError } from "multer";
 import { ApiError } from "./ApiError.js";
 import { type mongo, type Error as MongooseError } from "mongoose";
 import type { HttpError } from "http-errors";
+import type { ZodError } from "zod";
 
 export const handleMongoDuplicateKey = (
   err: mongo.MongoServerError
@@ -77,5 +78,23 @@ export const handleMongooseValidationError = (
     400,
     "VALIDATION_ERROR",
     messages || "Databse validation failed"
+  );
+};
+
+export const handleZodValidationError = (error: ZodError): ApiError => {
+  const validationIssues = error.issues.map((issue) => ({
+    field: issue.path.join("."),
+    message: issue.message,
+  }));
+
+  const summaryMessage = validationIssues
+    .map((issue) => `${issue.field}: ${issue.message}`)
+    .join(", ");
+
+  return new ApiError(
+    400,
+    "VALIDATION_ERROR",
+    summaryMessage || error.message,
+    validationIssues
   );
 };
