@@ -4,16 +4,19 @@ import { VideoDeletionStatus } from "../types/Model/Video.js";
 
 async function recoverVideoDeletions(): Promise<void> {
   try {
+    const staleInProgressCutoff = new Date(Date.now() - 10 * 60 * 1000);
     const videos = await Video.find({
-      isDeleted: true,
-      deletionStatus: {
-        $in: [
-          VideoDeletionStatus.PENDING,
-          VideoDeletionStatus.IN_PROGRESS,
-          VideoDeletionStatus.FAILED,
-        ],
-      },
-    });
+      deletedAt: { $ne: null },
+      $or: [
+        { deletionStatus: VideoDeletionStatus.PENDING },
+        {
+          deletionStatus: VideoDeletionStatus.IN_PROGRESS,
+          deletedAt: { $lt: staleInProgressCutoff },
+        },
+      ],
+    })
+      .select("_id")
+      .lean();
     if (videos.length === 0) {
       return;
     }
