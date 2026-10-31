@@ -11,6 +11,8 @@ import {
 } from "../utils/errorTransformers.js";
 import type { GlobalError } from "../types/Error/GobalError.js";
 import { HttpError } from "http-errors";
+import { ZodError } from "zod";
+import { handleZodValidationError } from "../utils/errorTransformers.js";
 
 const globalErrorHandler = (
   err: GlobalError,
@@ -26,6 +28,7 @@ const globalErrorHandler = (
   else if (err instanceof MongooseError.CastError) error = handleCastError(err);
   else if (err instanceof MongooseError.ValidationError)
     error = handleMongooseValidationError(err);
+  else if (err instanceof ZodError) error = handleZodValidationError(err);
   else if (
     err instanceof HttpError &&
     typeof err.status === "number" &&
