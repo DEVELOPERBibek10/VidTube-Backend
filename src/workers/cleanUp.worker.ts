@@ -19,6 +19,7 @@ const cleanUpWorker = new Worker(
     );
 
     if (!video) {
+      console.error(`Video not found: ${job.data.deletionId}`);
       return job.name;
     }
 
@@ -34,6 +35,7 @@ const cleanUpWorker = new Worker(
   },
   {
     connection: redisClientQueue,
+    autorun: false,
     limiter: {
       max: 5,
       duration: 3000,
