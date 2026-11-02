@@ -1,22 +1,10 @@
-import type { NextFunction } from "express";
-import { type ZodObject, type ZodType } from "zod";
+import type { NextFunction, Request } from "express";
+import { type ZodObject } from "zod";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import type { Params } from "express-serve-static-core";
-import type { ParsedQs } from "qs";
+import type { AuthTypedRequest, TypedRequest } from "../types/request.js";
 
-type RequestSchema = ZodObject<{
-  body?: ZodType;
-  params?: ZodType;
-  query?: ZodType;
-  file?: ZodType;
-}>;
-
-type ValidationRequest = {
-  body: Record<string, unknown>;
-  params: Params;
-  query: ParsedQs;
-  file?: Express.Multer.File;
-};
+type RequestSchema = ZodObject;
+type ValidationRequest = AuthTypedRequest<unknown> | TypedRequest<unknown>;
 
 export const validation = (schema: RequestSchema) =>
   asyncHandler(async (req: ValidationRequest, _res, next: NextFunction) => {
@@ -26,11 +14,20 @@ export const validation = (schema: RequestSchema) =>
       query: req.query ?? {},
       file: req.file,
     });
-    req.body = parsedRequest.body as ValidationRequest["body"];
-    req.params = parsedRequest.params as ValidationRequest["params"];
-    req.query = parsedRequest.query as ValidationRequest["query"];
-    if (parsedRequest.file) {
-      req.file = parsedRequest.file as ValidationRequest["file"];
+    if ("body" in parsedRequest) {
+      req.body = parsedRequest.body;
+    }
+
+    if ("params" in parsedRequest) {
+      req.params = parsedRequest.params as Request["params"];
+    }
+
+    if ("query" in parsedRequest) {
+      req.query = parsedRequest.query as Request["query"];
+    }
+
+    if ("file" in parsedRequest) {
+      req.file = parsedRequest.file as Request["file"];
     }
     next();
   });
