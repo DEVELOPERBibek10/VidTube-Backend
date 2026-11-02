@@ -20,12 +20,17 @@ type ValidationRequest = {
 
 export const validation = (schema: RequestSchema) =>
   asyncHandler(async (req: ValidationRequest, _res, next: NextFunction) => {
-    await schema.parseAsync({
+    const parsedRequest = await schema.parseAsync({
       body: req.body ?? {},
       params: req.params ?? {},
       query: req.query ?? {},
       file: req.file,
     });
-
+    req.body = parsedRequest.body as ValidationRequest["body"];
+    req.params = parsedRequest.params as ValidationRequest["params"];
+    req.query = parsedRequest.query as ValidationRequest["query"];
+    if (parsedRequest.file) {
+      req.file = parsedRequest.file as ValidationRequest["file"];
+    }
     next();
   });
