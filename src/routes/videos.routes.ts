@@ -3,6 +3,7 @@ import { verifyJWT } from "../middlewares/auth.middleware.js";
 import {
   deleteVideo,
   getAllVideos,
+  getVideo,
   getSuggestions,
   getVideoSignature,
   searchVideos,
@@ -53,9 +54,6 @@ videoRouter
     updateThumbnail
   );
 videoRouter
-  .route("/:videoId")
-  .delete(verifyJWT, validation(updateVideoParamsSchema), deleteVideo);
-videoRouter
   .route("")
   .get(verifyJWT, validation(videoQuerySchema), getAllVideos);
 videoRouter
@@ -64,5 +62,9 @@ videoRouter
 videoRouter
   .route("/search")
   .get(verifyJWT, validation(videoSearchQuerySchema), searchVideos);
+videoRouter
+  .route("/:videoId")
+  .get(verifyJWT, validation(updateVideoParamsSchema), getVideo)
+  .delete(verifyJWT, validation(updateVideoParamsSchema), deleteVideo);
 
 export default videoRouter;

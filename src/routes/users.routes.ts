@@ -9,6 +9,9 @@ import {
   updateAvatar,
   updateCoverImage,
   getUserChannelProfile,
+  changeCurrentPassword,
+  getUserSearchSuggestions,
+  searchUsers,
 } from "../controllers/users.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
@@ -19,6 +22,9 @@ import {
   registerSchema,
   updateUserDetailSchema,
   userParamSchema,
+  changePasswordSchema,
+  getUserSuggestionsSchema,
+  userSearchQuerySchema,
   type UpdateUserSchema,
 } from "../validators/user.validator.js";
 import {
@@ -36,6 +42,13 @@ userRouter.route("/refresh-token").post(refreshAccessToken);
 // secure route
 userRouter.route("/logout").post(verifyJWT, logoutUser);
 userRouter.route("/current-user").get(verifyJWT, getCurrentUser);
+userRouter
+  .route("/change-password")
+  .patch(
+    verifyJWT,
+    validation(changePasswordSchema),
+    changeCurrentPassword
+  );
 userRouter
   .route("/details")
   .patch(
@@ -62,5 +75,15 @@ userRouter
 userRouter
   .route("/profile/:username")
   .get(verifyJWT, validation(userParamSchema), getUserChannelProfile);
+userRouter
+  .route("/suggestions")
+  .get(
+    verifyJWT,
+    validation(getUserSuggestionsSchema),
+    getUserSearchSuggestions
+  );
+userRouter
+  .route("/search")
+  .get(verifyJWT, validation(userSearchQuerySchema), searchUsers);
 
 export default userRouter;
