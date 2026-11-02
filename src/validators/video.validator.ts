@@ -2,8 +2,8 @@ import { z } from "zod";
 import { validateId } from "../utils/validateId.js";
 import { multerFileSchema } from "./file.validator.js";
 
-export const videoRequestSchema = z.strictObject({
-  body: z.strictObject({
+export const videoRequestSchema = z.object({
+  body: z.object({
     title: z
       .string()
       .trim()
@@ -35,9 +35,9 @@ export const videoRequestSchema = z.strictObject({
   file: multerFileSchema,
 });
 
-export const updateVideoSchema = z.strictObject({
+export const updateVideoSchema = z.object({
   body: z
-    .strictObject({
+    .object({
       title: z
         .string()
         .trim()
@@ -64,8 +64,8 @@ export const updateVideoSchema = z.strictObject({
     }),
 });
 
-export const updateVideoParamsSchema = z.strictObject({
-  params: z.strictObject({
+export const updateVideoParamsSchema = z.object({
+  params: z.object({
     videoId: z
       .string()
       .trim()
@@ -75,8 +75,8 @@ export const updateVideoParamsSchema = z.strictObject({
   }),
 });
 
-export const videoQuerySchema = z.strictObject({
-  query: z.strictObject({
+export const videoQuerySchema = z.object({
+  query: z.object({
     videoId: z
       .string()
       .trim()
@@ -94,8 +94,8 @@ export const videoQuerySchema = z.strictObject({
   }),
 });
 
-export const getSuggestionsSchema = z.strictObject({
-  query: z.strictObject({
+export const getSuggestionsSchema = z.object({
+  query: z.object({
     title: z
       .string()
       .trim()
@@ -104,9 +104,9 @@ export const getSuggestionsSchema = z.strictObject({
   }),
 });
 
-export const videoSearchQuerySchema = z.strictObject({
+export const videoSearchQuerySchema = z.object({
   query: z
-    .strictObject({
+    .object({
       searchQuery: z
         .string()
         .trim()
