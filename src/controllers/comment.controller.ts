@@ -34,7 +34,7 @@ const addComment = asyncHandler(
       video: videoId,
       content,
       owner: req.user._id,
-      ...(parentComment && { parentComment }),
+      ...(parentComment && { parentId: parentComment }),
     });
 
     return res
@@ -53,9 +53,9 @@ const fetchComments = asyncHandler(
     const comments = await getAllComments({
       videoId: new Types.ObjectId(videoId),
       cursor: cursor ? new Types.ObjectId(cursor) : null,
-      parentComment: parentComment
-        ? new Types.ObjectId(parentComment)
-        : undefined,
+      ...(parentComment && {
+        parentId: new Types.ObjectId(parentComment),
+      }),
       userId: req.user._id,
     });
 
