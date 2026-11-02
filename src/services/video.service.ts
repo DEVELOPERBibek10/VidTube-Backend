@@ -11,7 +11,7 @@ import { Video } from "../models/video.model.js";
 import mongoose from "mongoose";
 import { redisClientCache } from "../configs/redis.js";
 import { WatchHistory } from "../models/watchHistory.model.js";
-import { pageinationHelper } from "../utils/paginationHelper.js";
+import { paginationHelper } from "../utils/paginationHelper.js";
 import type { MongoId } from "../types/id.js";
 import type { WatchHistoryDocument } from "../types/Services/watchHistory.js";
 import { cleanUpQueue } from "../queues/cleanUp.queue.js";
@@ -391,7 +391,7 @@ async function getEveryVideo(videoId?: MongoId, userId?: MongoId) {
     pipeline as []
   );
 
-  return pageinationHelper<PaginatedVideoDocument>(videos, limit, false);
+  return paginationHelper<PaginatedVideoDocument>(videos, limit, false);
 }
 
 export {

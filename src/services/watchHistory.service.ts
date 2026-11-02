@@ -1,7 +1,7 @@
 import { WatchHistory } from "../models/watchHistory.model.js";
 import mongoose from "mongoose";
 import type { MongoId } from "../types/id.js";
-import { pageinationHelper } from "../utils/paginationHelper.js";
+import { paginationHelper } from "../utils/paginationHelper.js";
 
 async function createHistory(
   userId: MongoId,
@@ -86,7 +86,7 @@ async function getWatchHistory(userId: MongoId, historyId?: MongoId | null) {
   );
   const history = await WatchHistory.aggregate(pipeline);
 
-  return pageinationHelper(history, limit, false);
+  return paginationHelper(history, limit, false);
 }
 
 async function deleteHistory(userId: MongoId, historyId: MongoId) {

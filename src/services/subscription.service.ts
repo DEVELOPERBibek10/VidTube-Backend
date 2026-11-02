@@ -2,7 +2,7 @@ import { Subscription } from "../models/subscription.model.js";
 import type { MongoId } from "../types/id.js";
 import { executeTransaction } from "../utils/executeTransaction.js";
 import { User } from "../models/user.model.js";
-import { pageinationHelper } from "../utils/paginationHelper.js";
+import { paginationHelper } from "../utils/paginationHelper.js";
 import type { PaginatedSubscriptionDocument } from "../types/Services/subscriber.js";
 type SubscribeToggleReponse = {
   success: boolean;
@@ -103,7 +103,7 @@ async function getSubscribedChannels(
 
   const channels: PaginatedSubscriptionDocument[] =
     await Subscription.aggregate(pipeline as []);
-  return pageinationHelper<PaginatedSubscriptionDocument["channelDetail"]>(
+  return paginationHelper<PaginatedSubscriptionDocument["channelDetail"]>(
     channels.map((channel) => channel.channelDetail),
     limit,
     false

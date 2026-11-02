@@ -6,7 +6,7 @@ import type {
   GetAllComments,
 } from "../types/Services/comment.js";
 import { ApiError } from "../utils/ApiError.js";
-import { pageinationHelper } from "../utils/paginationHelper.js";
+import { paginationHelper } from "../utils/paginationHelper.js";
 import type { MongoId } from "../types/id.js";
 
 async function createComment(commentData: CreateComment): Promise<IComment> {
@@ -22,18 +22,18 @@ async function createComment(commentData: CreateComment): Promise<IComment> {
 }
 
 async function getAllComments(commentQuery: GetAllComments) {
-  const { videoId, cursor, parentComment, userId } = commentQuery;
+  const { videoId, cursor, parentId, userId } = commentQuery;
   const limit = 6;
   const pipeline = [];
 
-  if (!cursor && !parentComment && videoId) {
+  if (!cursor && !parentId && videoId) {
     // It is for fetching top-level comments without pagination
     pipeline.push({
       $match: {
         video: new Types.ObjectId(videoId),
       },
     });
-  } else if (cursor && !parentComment && videoId) {
+  } else if (cursor && !parentId && videoId) {
     // It is for top-level comment with pagination
     pipeline.push({
       $match: {
@@ -41,20 +41,20 @@ async function getAllComments(commentQuery: GetAllComments) {
         _id: { $lt: new Types.ObjectId(cursor) },
       },
     });
-  } else if (!cursor && parentComment && videoId) {
+  } else if (!cursor && parentId && videoId) {
     // It is for fetching replies without pagination
     pipeline.push({
       $match: {
         video: new Types.ObjectId(videoId),
-        parentComment: new Types.ObjectId(parentComment),
+        parentId: new Types.ObjectId(parentId),
       },
     });
-  } else if (cursor && parentComment && videoId) {
+  } else if (cursor && parentId && videoId) {
     // It is for replies with pagination
     pipeline.push({
       $match: {
         video: new Types.ObjectId(videoId),
-        parentComment: new Types.ObjectId(parentComment),
+        parentId: new Types.ObjectId(parentId),
         _id: { $lt: new Types.ObjectId(cursor) },
       },
     });
@@ -125,12 +125,12 @@ async function getAllComments(commentQuery: GetAllComments) {
         likesCount: 1,
         isLiked: 1,
         commentBy: 1,
-        parentComment: 1,
+        parentId: 1,
       },
     }
   );
   const comments = await Comment.aggregate(pipeline as []);
-  return pageinationHelper(comments, limit, false);
+  return paginationHelper(comments, limit, false);
 }
 
 async function updateComment(
