@@ -3,17 +3,20 @@ import type { Request } from "express";
 import type { ParsedQs } from "qs";
 import type { MongoId } from "./id.js";
 
+type OptionalParams = Params | undefined;
+type OptionalQuery = ParsedQs | undefined;
+type OptionalFile = Express.Multer.File | undefined;
+
 export interface TypedRequest<
   TBody,
-  TParams extends Params | null = Params | null,
-  TQuery extends ParsedQs | null = ParsedQs | null,
-  TFiles = Express.Multer.File[] | Record<string, Express.Multer.File[]> | null,
+  TParams extends OptionalParams = OptionalParams,
+  TQuery extends OptionalQuery = OptionalQuery,
+  TFile extends OptionalFile = OptionalFile,
 > extends Omit<Request, "body" | "params" | "query" | "files" | "file"> {
   body: TBody;
   params: TParams;
   query: TQuery;
-  files: TFiles;
-  file: Express.Multer.File | null;
+  file: TFile;
 }
 
 interface UserRequest {
@@ -35,9 +38,9 @@ interface UserRequest {
 
 export interface AuthTypedRequest<
   TBody,
-  TFile extends Express.Multer.File | null = Express.Multer.File | null,
-  TParams extends Params | null = Params | null,
-  TQuery extends ParsedQs | null = ParsedQs | null,
+  TFile extends OptionalFile = OptionalFile,
+  TParams extends OptionalParams = OptionalParams,
+  TQuery extends OptionalQuery = OptionalQuery,
 > extends Omit<Request, "body" | "file" | "params" | "query"> {
   body: TBody;
   user: UserRequest;
