@@ -5,7 +5,7 @@ interface Paginable {
   _id?: MongoId;
 }
 
-export function pageinationHelper<T extends Paginable>(
+export function paginationHelper<T extends Paginable>(
   data: T[],
   limit: number,
   paginationTokenExists: boolean
