@@ -78,7 +78,7 @@ const logoutUser = asyncHandler(async (req: Request, res: Response) => {
 });
 
 const refreshAccessToken = asyncHandler(
-  async (req: TypedRequest<null>, res: Response) => {
+  async (req: TypedRequest<undefined>, res: Response) => {
     const incomingRefreshToken = req.cookies.refreshToken as string;
 
     if (!incomingRefreshToken) {
@@ -99,7 +99,7 @@ const refreshAccessToken = asyncHandler(
 );
 
 const getCurrentUser = asyncHandler(
-  (req: AuthTypedRequest<null>, res: Response) => {
+  (req: AuthTypedRequest<undefined>, res: Response) => {
     const {
       _id,
       fullName,
@@ -164,7 +164,10 @@ const updateDetails = asyncHandler(
 );
 
 const updateAvatar = asyncHandler(
-  async (req: AuthTypedRequest<null, Express.Multer.File>, res: Response) => {
+  async (
+    req: AuthTypedRequest<undefined, Express.Multer.File>,
+    res: Response
+  ) => {
     const avatarLocalFile = req.file.path;
 
     if (!avatarLocalFile) {
@@ -188,7 +191,10 @@ const updateAvatar = asyncHandler(
 );
 
 const updateCoverImage = asyncHandler(
-  async (req: AuthTypedRequest<null, Express.Multer.File>, res: Response) => {
+  async (
+    req: AuthTypedRequest<undefined, Express.Multer.File>,
+    res: Response
+  ) => {
     const coverImageLocalFile = req.file.path;
 
     if (!coverImageLocalFile)
@@ -209,7 +215,10 @@ const updateCoverImage = asyncHandler(
 );
 
 const getUserChannelProfile = asyncHandler(
-  async (req: AuthTypedRequest<null, null, UserParamSchema>, res: Response) => {
+  async (
+    req: AuthTypedRequest<undefined, undefined, UserParamSchema>,
+    res: Response
+  ) => {
     const { username } = req.params;
 
     const channel = await getProfile(username, req.user._id);
@@ -222,10 +231,15 @@ const getUserChannelProfile = asyncHandler(
 
 const getUserSearchSuggestions = asyncHandler(
   async (
-    req: AuthTypedRequest<null, null, GetUserSuggestionsSchema>,
+    req: AuthTypedRequest<
+      undefined,
+      undefined,
+      undefined,
+      GetUserSuggestionsSchema
+    >,
     res: Response
   ) => {
-    const { username } = req.params;
+    const { username } = req.query;
     if (!username || username.trim() === "") {
       return res
         .status(200)
@@ -254,7 +268,12 @@ const getUserSearchSuggestions = asyncHandler(
 
 const searchUsers = asyncHandler(
   async (
-    req: AuthTypedRequest<null, null, null, UserSearchQuerySchema>,
+    req: AuthTypedRequest<
+      undefined,
+      undefined,
+      undefined,
+      UserSearchQuerySchema
+    >,
     res: Response
   ) => {
     const { username, searchToken } = req.query;

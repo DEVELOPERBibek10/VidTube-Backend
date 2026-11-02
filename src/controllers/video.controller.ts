@@ -28,7 +28,7 @@ import {
 } from "../services/search.service.js";
 
 const getVideoSignature = asyncHandler(
-  (req: AuthTypedRequest<null, null, null>, res: Response) => {
+  (req: AuthTypedRequest<null, undefined, undefined>, res: Response) => {
     const { signature, timestamp, folder } = getSignature();
 
     return res.status(200).json(
@@ -89,7 +89,11 @@ const uploadVideo = asyncHandler(
 
 const updateVideoDetails = asyncHandler(
   async (
-    req: AuthTypedRequest<UpdateVideoSchema, null, UpdateVideoParamsSchema>,
+    req: AuthTypedRequest<
+      UpdateVideoSchema,
+      undefined,
+      UpdateVideoParamsSchema
+    >,
     res: Response
   ) => {
     const { title, description, isPublished } = req.body;
@@ -166,7 +170,7 @@ const updateThumbnail = asyncHandler(
 
 const deleteVideo = asyncHandler(
   async (
-    req: AuthTypedRequest<null, null, UpdateVideoParamsSchema>,
+    req: AuthTypedRequest<null, undefined, UpdateVideoParamsSchema>,
     res: Response
   ) => {
     const { videoId } = req.params;
@@ -181,7 +185,7 @@ const deleteVideo = asyncHandler(
 
 export const getVideo = asyncHandler(
   async (
-    req: AuthTypedRequest<null, null, UpdateVideoParamsSchema>,
+    req: AuthTypedRequest<null, undefined, UpdateVideoParamsSchema>,
     res: Response
   ) => {
     const { videoId } = req.params;
@@ -196,7 +200,7 @@ export const getVideo = asyncHandler(
 
 const getAllVideos = asyncHandler(
   async (
-    req: AuthTypedRequest<null, null, null, VideoQuerySchema>,
+    req: AuthTypedRequest<null, undefined, undefined, VideoQuerySchema>,
     res: Response
   ) => {
     const { videoId, userId } = req.query;
@@ -210,7 +214,7 @@ const getAllVideos = asyncHandler(
 
 const getSuggestions = asyncHandler(
   async (
-    req: AuthTypedRequest<null, null, null, GetSuggestionsSchema>,
+    req: AuthTypedRequest<null, undefined, undefined, GetSuggestionsSchema>,
     res: Response
   ) => {
     const { title } = req.query;
@@ -237,7 +241,7 @@ const getSuggestions = asyncHandler(
 // Search videos by title using vector embeddings
 const searchVideos = asyncHandler(
   async (
-    req: AuthTypedRequest<null, null, null, SearchQuerySchema>,
+    req: AuthTypedRequest<null, undefined, undefined, SearchQuerySchema>,
     res: Response
   ) => {
     const { searchQuery, queryHash, page } = req.query;

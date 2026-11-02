@@ -13,7 +13,10 @@ import type {
 } from "../validators/like.validator.js";
 
 const toggleLikeOnVideo = asyncHandler(
-  async (req: AuthTypedRequest<null, null, VideoLikeSchema>, res: Response) => {
+  async (
+    req: AuthTypedRequest<undefined, undefined, VideoLikeSchema>,
+    res: Response
+  ) => {
     const { videoId } = req.params;
 
     const result = await toggleVideoLike(
@@ -32,7 +35,7 @@ const toggleLikeOnVideo = asyncHandler(
 
 const toggleLikeOnComment = asyncHandler(
   async (
-    req: AuthTypedRequest<null, null, CommentLikeSchema>,
+    req: AuthTypedRequest<undefined, undefined, CommentLikeSchema>,
     res: Response
   ) => {
     const { commentId } = req.params;

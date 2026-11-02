@@ -20,7 +20,11 @@ import type {
 
 const addComment = asyncHandler(
   async (
-    req: AuthTypedRequest<CreateCommentSchema, null, CreateCommentParamsSchema>,
+    req: AuthTypedRequest<
+      CreateCommentSchema,
+      undefined,
+      CreateCommentParamsSchema
+    >,
     res: Response
   ) => {
     const { videoId } = req.params;
@@ -41,7 +45,7 @@ const addComment = asyncHandler(
 
 const fetchComments = asyncHandler(
   async (
-    req: AuthTypedRequest<null, null, null, FetchCommentsSchema>,
+    req: AuthTypedRequest<undefined, undefined, undefined, FetchCommentsSchema>,
     res: Response
   ) => {
     const { videoId, cursor, parentComment } = req.query;
@@ -65,7 +69,7 @@ const editComment = asyncHandler(
   async (
     req: AuthTypedRequest<
       EditCommentSchema["body"],
-      null,
+      undefined,
       EditCommentSchema["params"]
     >,
     res: Response
@@ -93,7 +97,7 @@ const editComment = asyncHandler(
 
 const removeComment = asyncHandler(
   async (
-    req: AuthTypedRequest<null, null, DeleteCommentSchema>,
+    req: AuthTypedRequest<undefined, undefined, DeleteCommentSchema>,
     res: Response
   ) => {
     const { commentId } = req.params;

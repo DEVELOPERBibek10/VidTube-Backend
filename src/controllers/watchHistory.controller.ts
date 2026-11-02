@@ -27,7 +27,12 @@ const saveWatchHistory = asyncHandler(
 
 const fetchWatchHistory = asyncHandler(
   async (
-    req: AuthTypedRequest<null, null, null, FetchWatchHistorySchema>,
+    req: AuthTypedRequest<
+      undefined,
+      undefined,
+      undefined,
+      FetchWatchHistorySchema
+    >,
     res: Response
   ) => {
     const { historyId } = req.query;
@@ -44,7 +49,7 @@ const fetchWatchHistory = asyncHandler(
 
 const removeHistoryItem = asyncHandler(
   async (
-    req: AuthTypedRequest<null, null, DeleteWatchHistorySchema>,
+    req: AuthTypedRequest<undefined, undefined, DeleteWatchHistorySchema>,
     res: Response
   ) => {
     const { historyId } = req.params;
