@@ -40,6 +40,7 @@
 - Async middleware/controllers wrapped in `asyncHandler` (`src/utils/asyncHandler.ts`) — no try/catch inside, and none needed in awaited calls beneath it either (except cleanup, error-enrichment, or an intentional fallback); un-awaited calls and cron/queue code aren't covered and need explicit handling.
 - Responses: success → `ApiResponse`; failure → throw `ApiError`. Global error middleware (`src/middlewares/error.middleware.ts`) + transformers (`src/utils/errorTransformers.ts`) normalize Zod/Multer/MongoDB/parse errors.
 - Types: `src/types/Error/*` (ApiError, GlobalError), `Model/*`, `Services/*` (return/param types), `request.ts` (AuthTypedRequest, TypedRequestBody/Query/Params).
-- Zod schemas: `{ body?, params?, query?, file? }`; `validation(schema)` middleware (`src/middlewares/validation.middleware.ts`) parses request data before controllers run.
+- Zod schemas: `{ body?, params?, query?, file? }`; `validation(schema)`
+  (`src/middlewares/validation.middleware.ts`) supplies empty objects for missing body, params, and query sections and assigns parsed sections back to the request.
 - Auth: `verifyJWT` on protected routes; JWT from `accessToken` cookie or `Authorization: Bearer`; user on `req.user` (typed `AuthTypedRequest`).
 - Workers batch-remove dependent docs before destructive deletes.
