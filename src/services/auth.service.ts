@@ -55,14 +55,15 @@ async function register(user: Register) {
   return createdUser;
 }
 async function login(user: Login) {
-  const existingUser = await User.findOne({ email: user.email });
+  const existingUser = await User.findOne({ email: user.email }).select(
+    "+password"
+  );
 
   if (!existingUser) {
     throw new ApiError(404, "USER_NOT_FOUND", "User does not exist!");
   }
 
   const isPasswordValid = await existingUser.isPasswordCorrect(user.password);
-
   if (!isPasswordValid) {
     throw new ApiError(400, "INVALID_PASSWORD", "Password did not match.");
   }
@@ -70,8 +71,14 @@ async function login(user: Login) {
   const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
     existingUser._id
   );
-
-  return { user: existingUser, accessToken, refreshToken };
+  const response = {
+    _id: existingUser._id,
+    fullName: existingUser.fullName,
+    email: existingUser.email,
+    username: existingUser.username,
+    avatar: existingUser.avatar,
+  };
+  return { user: response, accessToken, refreshToken };
 }
 async function logout(refreshToken: string) {
   await User.findOneAndUpdate(
@@ -129,7 +136,7 @@ async function changePassword(
   userId: string | Types.ObjectId,
   password: ChangePassword
 ) {
-  const user = await User.findById(userId);
+  const user = await User.findById(userId).select("+password");
 
   const isPasswordCorrect = await user!.isPasswordCorrect(password.oldPassword);
 
