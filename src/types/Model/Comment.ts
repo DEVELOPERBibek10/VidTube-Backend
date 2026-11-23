@@ -1,10 +1,10 @@
-import type { MongoId } from "../id.js";
+import type mongoose from "mongoose";
 
 export interface IComment {
   content: string;
-  video: MongoId;
-  parentId: MongoId | null;
-  owner: MongoId;
+  video: mongoose.Types.ObjectId;
+  parentId: mongoose.Types.ObjectId | null;
+  owner: mongoose.Types.ObjectId;
   likes: number;
   createdAt: Date;
   updatedAt: Date;

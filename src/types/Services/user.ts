@@ -1,7 +1,5 @@
-import type { MongoId } from "../id.js";
-
 export type CurrentUser = {
-  id: MongoId;
+  id: string;
   fullName: string;
   username: string;
   email: string;
@@ -18,7 +16,7 @@ export type CurrentUser = {
 };
 
 export interface UserProfile {
-  _id: MongoId;
+  _id: string;
   fullName: string;
   username: string;
   subscribersCount: number;

@@ -3,12 +3,11 @@ import { Like } from "../models/like.model.js";
 import { Playlist } from "../models/playlist.model.js";
 import { Video } from "../models/video.model.js";
 import { WatchHistory } from "../models/watchHistory.model.js";
-import type { MongoId } from "../types/id.js";
 import { likeableType } from "../types/Model/Like.js";
 import { deleteVideoFromCloudinary } from "../utils/cloudinary.js";
 
 type cleanUpIds = {
-  videoId: MongoId;
+  videoId: string;
   mediaId: {
     videoPublicId: string;
     thumbnailPublicId: string;

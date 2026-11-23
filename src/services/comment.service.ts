@@ -7,7 +7,6 @@ import type {
 } from "../types/Services/comment.js";
 import { ApiError } from "../utils/ApiError.js";
 import { paginationHelper } from "../utils/paginationHelper.js";
-import type { MongoId } from "../types/id.js";
 
 async function createComment(commentData: CreateComment): Promise<IComment> {
   const comment = await Comment.create(commentData);
@@ -134,8 +133,8 @@ async function getAllComments(commentQuery: GetAllComments) {
 }
 
 async function updateComment(
-  commentId: MongoId,
-  userId: MongoId,
+  commentId: string,
+  userId: string,
   content: string
 ): Promise<string> {
   const comment = await Comment.findOneAndUpdate(
@@ -154,8 +153,8 @@ async function updateComment(
 }
 
 async function deleteComment(
-  commentId: MongoId,
-  userId: MongoId
+  commentId: string,
+  userId: string
 ): Promise<{ success: boolean }> {
   const comment = await Comment.findOneAndDelete({
     _id: commentId,

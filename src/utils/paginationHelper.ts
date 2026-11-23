@@ -1,8 +1,6 @@
-import type { MongoId } from "../types/id.js";
-
 interface Paginable {
   paginationToken?: string;
-  _id?: MongoId;
+  _id?: string;
 }
 
 export function paginationHelper<T extends Paginable>(
@@ -11,7 +9,7 @@ export function paginationHelper<T extends Paginable>(
   paginationTokenExists: boolean
 ): {
   data: T[];
-  nextCursor: string | MongoId | null;
+  nextCursor: string | null;
   hasNextPage: boolean;
 } {
   if (!data || data.length === 0) {

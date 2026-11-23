@@ -1,5 +1,4 @@
 import { Subscription } from "../models/subscription.model.js";
-import type { MongoId } from "../types/id.js";
 import { executeTransaction } from "../utils/executeTransaction.js";
 import { User } from "../models/user.model.js";
 import { paginationHelper } from "../utils/paginationHelper.js";
@@ -9,7 +8,7 @@ type SubscribeToggleReponse = {
   subscriptionStatus: "subscribed" | "unsubscribed";
 };
 
-async function toggleSubscription(subscriberId: MongoId, channelId: MongoId) {
+async function toggleSubscription(subscriberId: string, channelId: string) {
   return await executeTransaction<SubscribeToggleReponse>(async (session) => {
     const unsubscribe = await Subscription.deleteOne({
       subscriber: subscriberId,
@@ -48,8 +47,8 @@ async function toggleSubscription(subscriberId: MongoId, channelId: MongoId) {
 }
 
 async function getSubscribedChannels(
-  subscriberId: MongoId,
-  channelId?: MongoId // cursor for pagination
+  subscriberId: string,
+  channelId?: string // cursor for pagination
 ) {
   const pipeline = [];
   const limit = 10;

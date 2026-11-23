@@ -12,7 +12,6 @@ import mongoose from "mongoose";
 import { redisClientCache } from "../configs/redis.js";
 import { WatchHistory } from "../models/watchHistory.model.js";
 import { paginationHelper } from "../utils/paginationHelper.js";
-import type { MongoId } from "../types/id.js";
 import type { WatchHistoryDocument } from "../types/Services/watchHistory.js";
 import { cleanUpQueue } from "../queues/cleanUp.queue.js";
 import { VideoDeletionStatus } from "../types/Model/Video.js";
@@ -98,8 +97,8 @@ async function upload(videoDoc: VideoUpload) {
 }
 
 async function updateVideoInfo(
-  videoId: MongoId,
-  owner: MongoId,
+  videoId: string,
+  owner: string,
   updateData: VideoUpdate
 ) {
   const { title, description, isPublished } = updateData;
@@ -134,7 +133,7 @@ async function updateVideoInfo(
   return updatedVideoDetail;
 }
 
-async function reviseThumbnail(videoId: MongoId, userId: MongoId) {
+async function reviseThumbnail(videoId: string, userId: string) {
   const video = await Video.findById(videoId)
     .select("thumbnail.publicId thumbnail.url")
     .lean();
@@ -173,7 +172,7 @@ async function reviseThumbnail(videoId: MongoId, userId: MongoId) {
   return updatedVideo;
 }
 
-async function removeVideo(videoId: MongoId, owner: MongoId): Promise<void> {
+async function removeVideo(videoId: string, owner: string): Promise<void> {
   const video = await Video.findOneAndUpdate(
     { _id: videoId, owner, deletedAt: null },
     {
@@ -197,10 +196,10 @@ async function removeVideo(videoId: MongoId, owner: MongoId): Promise<void> {
 }
 
 async function getVideo(
-  videoId: MongoId,
-  userId: MongoId
+  videoId: string,
+  userId: string
 ): Promise<VideoDocument> {
-  const cachedVideo = await redisClientCache.get(`video:${videoId as string}`);
+  const cachedVideo = await redisClientCache.get(`video:${videoId}`);
   if (cachedVideo) {
     return JSON.parse(cachedVideo) as VideoDocument;
   }
@@ -314,7 +313,7 @@ async function getVideo(
   return response;
 }
 
-async function getEveryVideo(videoId?: MongoId, userId?: MongoId) {
+async function getEveryVideo(videoId?: string, userId?: string) {
   const pipeline = [];
   const limit = 15;
 

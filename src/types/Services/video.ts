@@ -1,8 +1,7 @@
 import type { VideoUploadSchema } from "../../validators/video.validator.js";
-import type { MongoId } from "../id.js";
 
 export interface VideoUpload extends VideoUploadSchema {
-  owner: MongoId;
+  owner: string;
   thumbnailLocalPath: string;
 }
 
@@ -13,13 +12,13 @@ export interface VideoUpdate {
 }
 
 export interface VideoDocument {
-  _id: MongoId;
+  _id: string;
   title: string;
   description: string;
   duration: number;
   views: number;
   isPublished: boolean;
-  owner: MongoId;
+  owner: string;
   likes: number;
   comments: number;
   videoFile: { url: string; publicId: string };
@@ -37,7 +36,7 @@ export interface VideoDocument {
 }
 
 export interface PaginatedVideoDocument {
-  _id: MongoId;
+  _id: string;
   title: string;
   description: string;
   duration: number;

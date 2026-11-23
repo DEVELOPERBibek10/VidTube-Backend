@@ -1,7 +1,5 @@
-import type { MongoId } from "../id.js";
-
 export interface IUser {
-  _id: MongoId;
+  _id: string;
   username: string;
   email: string;
   fullName: string;

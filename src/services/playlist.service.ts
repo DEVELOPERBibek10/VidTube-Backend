@@ -1,9 +1,8 @@
 import { Playlist } from "../models/playlist.model.js";
-import type { MongoId } from "../types/id.js";
 import { ApiError } from "../utils/ApiError.js";
 
 async function createPlaylist(
-  userId: MongoId,
+  userId: string,
   name: string,
   description?: string
 ) {
@@ -17,9 +16,9 @@ async function createPlaylist(
 }
 
 async function addVideoToPlaylist(
-  userId: MongoId,
-  playlistId: MongoId,
-  videoId: MongoId
+  userId: string,
+  playlistId: string,
+  videoId: string
 ) {
   const playlist = await Playlist.findOneAndUpdate(
     { _id: playlistId, owner: userId, isPublished: true },
@@ -39,9 +38,9 @@ async function addVideoToPlaylist(
 }
 
 async function removeVideoFromPlaylist(
-  userId: MongoId,
-  playlistId: MongoId,
-  videoId: MongoId
+  userId: string,
+  playlistId: string,
+  videoId: string
 ) {
   const playlist = await Playlist.findOneAndUpdate(
     { _id: playlistId, owner: userId, isPublished: true },

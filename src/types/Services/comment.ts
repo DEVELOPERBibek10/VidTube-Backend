@@ -1,10 +1,8 @@
-import type { MongoId } from "../id.js";
-
 export type CreateComment = {
   content: string;
-  video: MongoId;
-  parentId?: MongoId;
-  owner: MongoId;
+  video: string;
+  parentId?: string;
+  owner: string;
 };
 
 export type UpdateComment = {
@@ -12,10 +10,10 @@ export type UpdateComment = {
 };
 
 export type GetAllCommentsBase = {
-  userId: MongoId;
-  videoId: MongoId;
-  cursor: MongoId | null; // The cursor is the ID of the last comment fetched in the previous request
-  parentId?: MongoId;
+  userId: string;
+  videoId: string;
+  cursor: string | null; // The cursor is the ID of the last comment fetched in the previous request
+  parentId?: string;
 };
 
 export type GetAllComments = GetAllCommentsBase;

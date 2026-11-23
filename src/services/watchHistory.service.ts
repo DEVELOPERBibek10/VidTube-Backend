@@ -1,11 +1,10 @@
 import { WatchHistory } from "../models/watchHistory.model.js";
 import mongoose from "mongoose";
-import type { MongoId } from "../types/id.js";
 import { paginationHelper } from "../utils/paginationHelper.js";
 
 async function createHistory(
-  userId: MongoId,
-  videoId: MongoId,
+  userId: string,
+  videoId: string,
   watchTime: number
 ) {
   await WatchHistory.findOneAndUpdate(
@@ -15,7 +14,7 @@ async function createHistory(
   );
 }
 
-async function getWatchHistory(userId: MongoId, historyId?: MongoId | null) {
+async function getWatchHistory(userId: string, historyId?: string | null) {
   const pipeline: mongoose.PipelineStage[] = [];
   const limit = 15;
 
@@ -89,7 +88,7 @@ async function getWatchHistory(userId: MongoId, historyId?: MongoId | null) {
   return paginationHelper(history, limit, false);
 }
 
-async function deleteHistory(userId: MongoId, historyId: MongoId) {
+async function deleteHistory(userId: string, historyId: string) {
   await WatchHistory.findOneAndDelete({ _id: historyId, user: userId });
 }
 
