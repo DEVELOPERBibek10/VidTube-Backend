@@ -1,36 +1,25 @@
 import mongoose from "mongoose";
-import {
-  MongoErrorLabel,
-  MongoServerError,
-  type TransactionOptions,
-} from "mongodb";
+import { MongoErrorLabel, MongoServerError } from "mongodb";
 
 export async function executeTransaction<T>(
   transactionFn: (session: mongoose.ClientSession) => Promise<T>,
   options?: {
     maxRetries?: number;
     retryDelay?: number;
-    transactionOptions?: TransactionOptions;
   }
 ) {
-  const {
-    maxRetries = 3,
-    retryDelay = 1000,
-    transactionOptions = {},
-  } = options || {};
+  const { maxRetries = 3, retryDelay = 1000 } = options || {};
 
   let lastError: unknown = null;
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    const session = await mongoose.startSession();
     try {
-      const result = await session.withTransaction(
-        () => transactionFn(session),
+      const result = await mongoose.connection.transaction(
+        (session) => transactionFn(session),
         {
           readPreference: "primary",
           readConcern: { level: "snapshot" },
           writeConcern: { w: "majority" },
-          ...transactionOptions,
         }
       );
       return result;
@@ -48,8 +37,6 @@ export async function executeTransaction<T>(
         continue;
       }
       throw error;
-    } finally {
-      await session.endSession();
     }
   }
   throw lastError;
