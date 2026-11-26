@@ -7,11 +7,11 @@ export const createWatchHistorySchema = z.object({
       .string()
       .trim()
       .refine((value) => validateId(value), {
-        message: "Invalid videoId",
+        error: "Invalid videoId",
       }),
     watchTime: z.coerce
-      .number({ message: "Watch time must be a valid number." })
-      .min(0, { message: "Watch time cannot be negative." }),
+      .number({ error: "Watch time must be a valid number." })
+      .min(0, { error: "Watch time cannot be negative." }),
   }),
 });
 
@@ -21,7 +21,7 @@ export const fetchWatchHistorySchema = z.object({
       .string()
       .trim()
       .refine((value) => validateId(value), {
-        message: "Invalid historyId",
+        error: "Invalid historyId",
       })
       .optional(),
   }),
@@ -33,7 +33,7 @@ export const deleteWatchHistorySchema = z.object({
       .string()
       .trim()
       .refine((value) => validateId(value), {
-        message: "Invalid historyId",
+        error: "Invalid historyId",
       }),
   }),
 });

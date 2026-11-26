@@ -7,7 +7,7 @@ const createCommentSchema = z.strictObject({
       .string()
       .trim()
       .refine((value) => validateId(value), {
-        message: "Invalid videoId",
+        error: "Invalid videoId",
       }),
   }),
   body: z.strictObject({
@@ -16,7 +16,7 @@ const createCommentSchema = z.strictObject({
       .string()
       .trim()
       .refine((value) => validateId(value), {
-        message: "Invalid parentComment",
+        error: "Invalid parentComment",
       })
       .optional(),
   }),
@@ -28,20 +28,20 @@ const fetchCommentsSchema = z.object({
       .string()
       .trim()
       .refine((value) => validateId(value), {
-        message: "Invalid videoId",
+        error: "Invalid videoId",
       }),
     cursor: z
       .string()
       .trim()
       .refine((value) => validateId(value), {
-        message: "Invalid cursor",
+        error: "Invalid cursor",
       })
       .optional(),
     parentComment: z
       .string()
       .trim()
       .refine((value) => validateId(value), {
-        message: "Invalid parentComment",
+        error: "Invalid parentComment",
       })
       .optional(),
   }),
@@ -53,7 +53,7 @@ const editCommentSchema = z.object({
       .string()
       .trim()
       .refine((value) => validateId(value), {
-        message: "Invalid commentId",
+        error: "Invalid commentId",
       })
       .min(1, { error: "commentId is required." }),
   }),
@@ -68,7 +68,7 @@ const deleteCommentSchema = z.object({
       .string()
       .trim()
       .refine((value) => validateId(value), {
-        message: "Invalid commentId",
+        error: "Invalid commentId",
       }),
   }),
 });

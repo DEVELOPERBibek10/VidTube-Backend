@@ -24,8 +24,8 @@ export const videoRequestSchema = z.object({
       .min(1, { error: "Public Id is required." }),
 
     duration: z.coerce
-      .number({ message: "Video duration must be a valid number." })
-      .min(1, { message: "Video duration must be at least 1." }),
+      .number({ error: "Video duration must be a valid number." })
+      .min(1, { error: "Video duration must be at least 1." }),
     isPublished: z
       .enum(["true", "false"], {
         error: "Please provide a valid status",
@@ -70,7 +70,7 @@ export const updateVideoParamsSchema = z.object({
       .string()
       .trim()
       .refine((value) => validateId(value), {
-        message: "Invalid videoId",
+        error: "Invalid videoId",
       }),
   }),
 });
@@ -81,14 +81,14 @@ export const videoQuerySchema = z.object({
       .string()
       .trim()
       .refine((value) => validateId(value), {
-        message: "Invalid videoId",
+        error: "Invalid videoId",
       })
       .optional(),
     userId: z
       .string()
       .trim()
       .refine((value) => validateId(value), {
-        message: "Invalid userId",
+        error: "Invalid userId",
       })
       .optional(),
   }),
@@ -105,28 +105,17 @@ export const getSuggestionsSchema = z.object({
 });
 
 export const videoSearchQuerySchema = z.object({
-  query: z
-    .object({
-      searchQuery: z
-        .string()
-        .trim()
-        .max(50, { error: "Search query cannot exceed 50 characters." })
-        .optional(),
-      queryHash: z
-        .string()
-        .trim()
-        .max(32, { error: "Query hash cannot exceed 32 characters." })
-        .regex(/^[a-f0-9]+$/, {
-          message: "Query hash must be a valid hash.",
-        })
-        .optional(),
-      page: z.coerce
-        .number({ message: "Page must be a valid number." })
-        .positive({ message: "Page must be a positive integer." }),
-    })
-    .refine((data) => data.searchQuery || data.queryHash, {
-      message: "You must provide either a search query or a query hash.",
-    }),
+  query: z.object({
+    searchQuery: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .max(50, { error: "Search query cannot exceed 50 characters." })
+      .optional(),
+    page: z.coerce
+      .number({ error: "Page must be a valid number." })
+      .positive({ error: "Page must be a positive integer." }),
+  }),
 });
 
 export type VideoUploadSchema = z.infer<typeof videoRequestSchema>["body"];

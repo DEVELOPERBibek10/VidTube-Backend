@@ -99,9 +99,19 @@ export const userSearchQuerySchema = z.object({
         .min(1, { error: "Query hash cannot be empty." })
         .optional(),
     })
-    .refine((data) => data.username || data.searchToken, {
-      message: "You must provide either a username or a searchToken.",
-    }),
+    .refine(
+      (data) => {
+        if (data.searchToken) {
+          if (data.username) {
+            return true;
+          }
+          return false;
+        }
+      },
+      {
+        error: "",
+      }
+    ),
 });
 
 export type GetUserSuggestionsSchema = z.infer<
