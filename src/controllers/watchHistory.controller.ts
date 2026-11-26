@@ -4,7 +4,7 @@ import {
   deleteHistory,
   getWatchHistory,
 } from "../services/watchHistory.service.js";
-import type { AuthTypedRequest } from "../types/request.js";
+import type { AuthTypedRequest, EmptyObject } from "../types/request.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import type {
@@ -30,7 +30,7 @@ const fetchWatchHistory = asyncHandler(
     req: AuthTypedRequest<
       undefined,
       undefined,
-      undefined,
+      EmptyObject,
       FetchWatchHistorySchema
     >,
     res: Response
