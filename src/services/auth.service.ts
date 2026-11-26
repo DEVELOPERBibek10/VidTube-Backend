@@ -8,26 +8,21 @@ import type {
 } from "../types/Services/auth.js";
 import { ApiError } from "../utils/ApiError.js";
 import jwt from "jsonwebtoken";
-import type { MongoId } from "../types/id.js";
 
-async function generateAccessAndRefreshToken(userId: MongoId) {
-  try {
-    const user = await User.findById(userId);
-    const accessToken = user!.generateAccessToken();
-    const refreshToken = user!.generateRefreshToken();
+async function generateAccessAndRefreshToken(userId: string) {
+  const user = await User.findById(userId);
 
-    user!.refreshToken = refreshToken;
-    await user!.save({ validateBeforeSave: false });
-
-    return { accessToken, refreshToken };
-  } catch (error) {
-    console.error("Unexpected error (generate token): ", error);
-    throw new ApiError(
-      500,
-      "INTERNAL_SERVER_ERROR",
-      "Unable to generate refresh and access token !"
-    );
+  if (!user) {
+    throw new ApiError(404, "USER_NOT_FOUND", "User does not exist.");
   }
+
+  const accessToken = user.generateAccessToken();
+  const refreshToken = user.generateRefreshToken();
+
+  user.refreshToken = refreshToken;
+  await user.save({ validateBeforeSave: false });
+
+  return { accessToken, refreshToken };
 }
 
 async function register(user: Register) {
