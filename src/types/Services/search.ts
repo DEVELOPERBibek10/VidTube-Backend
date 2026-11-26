@@ -1,5 +1,3 @@
-import type { IVideo } from "../Model/Video.js";
-
 export interface UserSuggestion {
   username: string;
   score: number;
@@ -21,8 +19,26 @@ export interface UserSearchResult {
   score: number;
 }
 
-export interface VideoSearchResponse {
-  videos: IVideo[];
-  nextCursor: string;
-  hasNextPage: boolean;
+export interface VideoSearchResult {
+  _id: string;
+  title: string;
+  description: string;
+  duration: number;
+  views: number;
+  creator: {
+    username: string;
+    avatar: {
+      url: string;
+      publicId: string;
+    };
+  };
+  video: {
+    url: string;
+    publicId: string;
+  };
+  thumbnail: {
+    url: string;
+    publicId: string;
+  };
+  createdAt: Date;
 }
