@@ -94,7 +94,7 @@ userSchema.methods.generateAccessToken = function (this: IUserDocument) {
 userSchema.methods.generateRefreshToken = function (this: IUserDocument) {
   return jwt.sign(
     {
-      _id: this._id as string,
+      _id: this._id,
       token_type: "refresh",
     },
     process.env.REFRESH_TOKEN_SECRET! as Secret,
