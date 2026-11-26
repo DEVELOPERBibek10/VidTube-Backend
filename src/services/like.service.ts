@@ -3,17 +3,15 @@ import { ApiError } from "../utils/ApiError.js";
 import { Like } from "../models/like.model.js";
 import { likeableType as LikeableType } from "../types/Model/Like.js";
 import { Comment } from "../models/comment.model.js";
-import type { MongoId } from "../types/id.js";
 import { executeTransaction } from "../utils/executeTransaction.js";
 
 type LikeToggleResponse = {
-  success: boolean;
   likeStatus: "Liked" | "Unliked";
 };
 
 async function likeToggle(
-  userId: MongoId,
-  likableId: MongoId,
+  userId: string,
+  likableId: string,
   likableType: LikeableType
 ): Promise<LikeToggleResponse> {
   return await executeTransaction<LikeToggleResponse>(async (session) => {
@@ -34,45 +32,45 @@ async function likeToggle(
         ],
         { session }
       );
-      const target =
-        likableType === LikeableType.video
-          ? await Video.updateOne(
-              { _id: likableId },
-              { $inc: { likeCount: 1 } }
-            ).session(session)
-          : await Comment.updateOne(
-              { _id: likableId },
-              { $inc: { likeCount: 1 } }
-            ).session(session);
+
+      if (likableType === LikeableType.video) {
+        await Video.updateOne(
+          { _id: likableId },
+          { $inc: { likeCount: 1 } }
+        ).session(session);
+      } else {
+        await Comment.updateOne(
+          { _id: likableId },
+          { $inc: { likeCount: 1 } }
+        ).session(session);
+      }
 
       return {
-        success: true,
         likeStatus: "Liked",
-        id: target.modifiedCount > 0 ? target.upsertedId : null,
       };
     }
-    const target =
-      likableType === LikeableType.video
-        ? await Video.updateOne(
-            { _id: likableId, likes: { $gte: 0 } },
-            { $inc: { likeCount: -1 } }
-          ).session(session)
-        : await Comment.updateOne(
-            { _id: likableId, likes: { $gte: 0 } },
-            { $inc: { likeCount: -1 } }
-          ).session(session);
+
+    if (likableType === LikeableType.video) {
+      await Video.updateOne(
+        { _id: likableId, likes: { $gte: 0 } },
+        { $inc: { likeCount: -1 } }
+      ).session(session);
+    } else {
+      await Comment.updateOne(
+        { _id: likableId, likes: { $gte: 0 } },
+        { $inc: { likeCount: -1 } }
+      ).session(session);
+    }
 
     return {
-      success: true,
       likeStatus: "Unliked",
-      id: target.modifiedCount > 0 ? target.upsertedId : null,
     };
   });
 }
 
 async function toggleVideoLike(
-  userId: MongoId,
-  videoId: MongoId,
+  userId: string,
+  videoId: string,
   likeableType: LikeableType.video
 ) {
   const isExistant = await Video.exists({ _id: videoId });
@@ -85,8 +83,8 @@ async function toggleVideoLike(
 }
 
 async function toggleCommentLike(
-  userId: MongoId,
-  commentId: MongoId,
+  userId: string,
+  commentId: string,
   likeableType: LikeableType.comment
 ) {
   const isExistant = await Comment.exists({ _id: commentId });
