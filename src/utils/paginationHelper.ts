@@ -8,13 +8,13 @@ export function paginationHelper<T extends Paginable>(
   limit: number,
   paginationTokenExists: boolean
 ): {
-  data: T[];
+  res: T[];
   nextCursor: string | null;
   hasNextPage: boolean;
 } {
   if (!data || data.length === 0) {
     return {
-      data: [],
+      res: [],
       nextCursor: null,
       hasNextPage: false,
     };
@@ -22,7 +22,7 @@ export function paginationHelper<T extends Paginable>(
   const hasNextPage = data.length > limit;
   const response = data.slice(0, limit);
   return {
-    data: response,
+    res: response,
     nextCursor: hasNextPage
       ? paginationTokenExists
         ? (response[response.length - 1]?.paginationToken ?? null)
