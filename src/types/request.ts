@@ -1,17 +1,18 @@
-import type { Params } from "express-serve-static-core";
 import type { Request } from "express";
-import type { ParsedQs } from "qs";
-import type { MongoId } from "./id.js";
 
-type OptionalParams = Params | undefined;
-type OptionalQuery = ParsedQs | undefined;
-type OptionalFile = Express.Multer.File | undefined;
+export type OptionalFile = Express.Multer.File | undefined;
+
+/**
+ * Express always populates `params` and `query` with an object, even when the
+ * client sends none, so unused sections are `{}` at runtime (never `undefined`).
+ */
+export type EmptyObject = Record<string, never>;
 
 export interface TypedRequest<
   TBody,
-  TParams extends OptionalParams = OptionalParams,
-  TQuery extends OptionalQuery = OptionalQuery,
-  TFile extends OptionalFile = OptionalFile,
+  TParams = EmptyObject,
+  TQuery = EmptyObject,
+  TFile = OptionalFile,
 > extends Omit<Request, "body" | "params" | "query" | "files" | "file"> {
   body: TBody;
   params: TParams;
@@ -20,7 +21,7 @@ export interface TypedRequest<
 }
 
 interface UserRequest {
-  _id: MongoId;
+  _id: string;
   username: string;
   email: string;
   fullName: string;
@@ -38,9 +39,9 @@ interface UserRequest {
 
 export interface AuthTypedRequest<
   TBody,
-  TFile extends OptionalFile = OptionalFile,
-  TParams extends OptionalParams = OptionalParams,
-  TQuery extends OptionalQuery = OptionalQuery,
+  TFile = OptionalFile,
+  TParams = EmptyObject,
+  TQuery = EmptyObject,
 > extends Omit<Request, "body" | "file" | "params" | "query"> {
   body: TBody;
   user: UserRequest;
