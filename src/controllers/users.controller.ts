@@ -3,7 +3,11 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import type { Request } from "express";
 
-import type { AuthTypedRequest, TypedRequest } from "../types/request.js";
+import type {
+  AuthTypedRequest,
+  EmptyObject,
+  TypedRequest,
+} from "../types/request.js";
 import type { Response } from "express";
 import type {
   RegisterUserSchema,
@@ -32,6 +36,7 @@ import {
   getProfile,
 } from "../services/users.service.js";
 import { userSearch, userSuggestions } from "../services/search.service.js";
+import { coalesceSearchRequest } from "../utils/coalesce.js";
 
 const registerUser = asyncHandler(
   async (req: TypedRequest<RegisterUserSchema>, res: Response) => {
@@ -165,7 +170,7 @@ const updateDetails = asyncHandler(
 
 const updateAvatar = asyncHandler(
   async (
-    req: AuthTypedRequest<undefined, Express.Multer.File>,
+    req: AuthTypedRequest<EmptyObject, Express.Multer.File>,
     res: Response
   ) => {
     const avatarLocalFile = req.file.path;
@@ -192,7 +197,7 @@ const updateAvatar = asyncHandler(
 
 const updateCoverImage = asyncHandler(
   async (
-    req: AuthTypedRequest<undefined, Express.Multer.File>,
+    req: AuthTypedRequest<EmptyObject, Express.Multer.File>,
     res: Response
   ) => {
     const coverImageLocalFile = req.file.path;
@@ -234,21 +239,18 @@ const getUserSearchSuggestions = asyncHandler(
     req: AuthTypedRequest<
       undefined,
       undefined,
-      undefined,
+      EmptyObject,
       GetUserSuggestionsSchema
     >,
     res: Response
   ) => {
     const { username } = req.query;
+
     if (!username || username.trim() === "") {
       return res
         .status(200)
         .json(
-          new ApiResponse(
-            200,
-            [],
-            "No username provided, returning empty suggestions."
-          )
+          new ApiResponse(200, [], "User suggestions fetched successfully")
         );
     }
 
@@ -271,13 +273,23 @@ const searchUsers = asyncHandler(
     req: AuthTypedRequest<
       undefined,
       undefined,
-      undefined,
+      EmptyObject,
       UserSearchQuerySchema
     >,
     res: Response
   ) => {
     const { username, searchToken } = req.query;
-    const users = await userSearch(req.user._id, username, searchToken);
+    if (!username || username.trim() === "") {
+      return res
+        .status(200)
+        .json(
+          new ApiResponse(200, [], "User search results fetched successfully")
+        );
+    }
+    const users = await coalesceSearchRequest(
+      `search:users:<${username}{${searchToken}}>`,
+      () => userSearch(req.user._id, username, searchToken)
+    );
 
     return res
       .status(200)

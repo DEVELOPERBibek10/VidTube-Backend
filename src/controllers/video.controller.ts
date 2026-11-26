@@ -2,9 +2,9 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { type Response } from "express";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
-import type { AuthTypedRequest } from "../types/request.js";
-
+import type { AuthTypedRequest, EmptyObject } from "../types/request.js";
 import mongoose from "mongoose";
+import crypto from "crypto";
 import {
   getEveryVideo,
   getSignature,
@@ -26,9 +26,10 @@ import {
   videoSearch,
   videoTitleSuggestions,
 } from "../services/search.service.js";
+import { coalesceSearchRequest } from "../utils/coalesce.js";
 
 const getVideoSignature = asyncHandler(
-  (req: AuthTypedRequest<null, undefined, undefined>, res: Response) => {
+  (req: AuthTypedRequest<undefined>, res: Response) => {
     const { signature, timestamp, folder } = getSignature();
 
     return res.status(200).json(
@@ -135,7 +136,11 @@ const updateVideoDetails = asyncHandler(
 
 const updateThumbnail = asyncHandler(
   async (
-    req: AuthTypedRequest<null, Express.Multer.File, UpdateVideoParamsSchema>,
+    req: AuthTypedRequest<
+      EmptyObject,
+      Express.Multer.File,
+      UpdateVideoParamsSchema
+    >,
     res: Response
   ) => {
     const { videoId } = req.params;
@@ -170,7 +175,7 @@ const updateThumbnail = asyncHandler(
 
 const deleteVideo = asyncHandler(
   async (
-    req: AuthTypedRequest<null, undefined, UpdateVideoParamsSchema>,
+    req: AuthTypedRequest<undefined, undefined, UpdateVideoParamsSchema>,
     res: Response
   ) => {
     const { videoId } = req.params;
@@ -185,7 +190,7 @@ const deleteVideo = asyncHandler(
 
 export const getVideo = asyncHandler(
   async (
-    req: AuthTypedRequest<null, undefined, UpdateVideoParamsSchema>,
+    req: AuthTypedRequest<undefined, undefined, UpdateVideoParamsSchema>,
     res: Response
   ) => {
     const { videoId } = req.params;
@@ -200,7 +205,7 @@ export const getVideo = asyncHandler(
 
 const getAllVideos = asyncHandler(
   async (
-    req: AuthTypedRequest<null, undefined, undefined, VideoQuerySchema>,
+    req: AuthTypedRequest<undefined, undefined, EmptyObject, VideoQuerySchema>,
     res: Response
   ) => {
     const { videoId, userId } = req.query;
@@ -214,7 +219,12 @@ const getAllVideos = asyncHandler(
 
 const getSuggestions = asyncHandler(
   async (
-    req: AuthTypedRequest<null, undefined, undefined, GetSuggestionsSchema>,
+    req: AuthTypedRequest<
+      undefined,
+      undefined,
+      EmptyObject,
+      GetSuggestionsSchema
+    >,
     res: Response
   ) => {
     const { title } = req.query;
@@ -241,15 +251,22 @@ const getSuggestions = asyncHandler(
 // Search videos by title using vector embeddings
 const searchVideos = asyncHandler(
   async (
-    req: AuthTypedRequest<null, undefined, undefined, SearchQuerySchema>,
+    req: AuthTypedRequest<undefined, undefined, EmptyObject, SearchQuerySchema>,
     res: Response
   ) => {
-    const { searchQuery, queryHash, page } = req.query;
-    const response = await videoSearch(
-      req.user._id,
-      searchQuery,
-      queryHash,
-      page
+    const { searchQuery, page } = req.query;
+    if (!searchQuery || searchQuery.trim() === "") {
+      return res
+        .status(200)
+        .json(new ApiResponse(200, [], "Videos fetched successfully"));
+    }
+    const searchHash = crypto
+      .createHash("md5")
+      .update(searchQuery)
+      .digest("hex");
+    const searchCoalesceKey = `search:video:<${searchHash}{${page}}>`;
+    const response = await coalesceSearchRequest(searchCoalesceKey, () =>
+      videoSearch(searchQuery ?? "", searchHash, page)
     );
 
     return res
