@@ -6,7 +6,7 @@ import {
   getAllComments,
   updateComment,
 } from "../services/comment.service.js";
-import type { AuthTypedRequest } from "../types/request.js";
+import type { AuthTypedRequest, EmptyObject } from "../types/request.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -45,17 +45,20 @@ const addComment = asyncHandler(
 
 const fetchComments = asyncHandler(
   async (
-    req: AuthTypedRequest<undefined, undefined, undefined, FetchCommentsSchema>,
+    req: AuthTypedRequest<
+      undefined,
+      undefined,
+      EmptyObject,
+      FetchCommentsSchema
+    >,
     res: Response
   ) => {
     const { videoId, cursor, parentComment } = req.query;
 
     const comments = await getAllComments({
-      videoId: new Types.ObjectId(videoId),
-      cursor: cursor ? new Types.ObjectId(cursor) : null,
-      ...(parentComment && {
-        parentId: new Types.ObjectId(parentComment),
-      }),
+      videoId,
+      cursor: cursor ?? null,
+      ...(parentComment && { parentId: parentComment }),
       userId: req.user._id,
     });
 
