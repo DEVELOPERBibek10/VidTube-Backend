@@ -90,7 +90,6 @@ export const userSearchQuerySchema = z.object({
       username: z
         .string()
         .trim()
-        .min(3, { error: "Query must be at least 3 characters." })
         .max(50, { error: "Query cannot exceed 50 characters." })
         .optional(),
       searchToken: z
