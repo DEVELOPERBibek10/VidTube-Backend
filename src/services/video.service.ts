@@ -116,7 +116,7 @@ async function updateVideoInfo(
   }
   if (description) updateData.description = description;
 
-  if (isPublished) updateData.isPublished = isPublished;
+  if ("isPublished" in updateData) updateData.isPublished = isPublished;
 
   const updatedVideoDetail = await Video.findOneAndUpdate(
     { _id: videoId, owner: owner },
@@ -199,7 +199,8 @@ async function getVideo(
   videoId: string,
   userId: string
 ): Promise<VideoDocument> {
-  const cachedVideo = await redisClientCache.get(`video:${videoId}`);
+  const cacheKey = `video:<${videoId}:${userId}>`;
+  const cachedVideo = await redisClientCache.get(cacheKey);
   if (cachedVideo) {
     return JSON.parse(cachedVideo) as VideoDocument;
   }
@@ -304,17 +305,12 @@ async function getVideo(
     _id: videoDoc._id,
     watchTime: history ? history.watchTime : null,
   };
-  await redisClientCache.set(
-    `video:${String(videoDoc._id)}`,
-    JSON.stringify(response),
-    "PX",
-    21600
-  );
+  await redisClientCache.set(cacheKey, JSON.stringify(response), "PX", 21600);
   return response;
 }
 
 async function getEveryVideo(videoId?: string, userId?: string) {
-  const pipeline = [];
+  const pipeline: mongoose.PipelineStage[] = [];
   const limit = 15;
 
   if (videoId && userId) {
@@ -351,7 +347,6 @@ async function getEveryVideo(videoId?: string, userId?: string) {
   }
 
   pipeline.push(
-    { $sort: { views: -1 } },
     {
       $limit: limit + 1,
     },
@@ -386,9 +381,7 @@ async function getEveryVideo(videoId?: string, userId?: string) {
     }
   );
 
-  const videos: PaginatedVideoDocument[] = await Video.aggregate(
-    pipeline as []
-  );
+  const videos: PaginatedVideoDocument[] = await Video.aggregate(pipeline);
 
   return paginationHelper<PaginatedVideoDocument>(videos, limit, false);
 }
