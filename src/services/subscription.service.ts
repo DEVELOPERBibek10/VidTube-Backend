@@ -4,8 +4,7 @@ import { User } from "../models/user.model.js";
 import { paginationHelper } from "../utils/paginationHelper.js";
 import type { PaginatedSubscriptionDocument } from "../types/Services/subscriber.js";
 type SubscribeToggleReponse = {
-  success: boolean;
-  subscriptionStatus: "subscribed" | "unsubscribed";
+  subscriptionStatus: "Subscribed" | "Unsubscribed";
 };
 
 async function toggleSubscription(subscriberId: string, channelId: string) {
@@ -30,8 +29,7 @@ async function toggleSubscription(subscriberId: string, channelId: string) {
       ).session(session);
 
       return {
-        success: true,
-        subscriptionStatus: "subscribed",
+        subscriptionStatus: "Subscribed",
       };
     }
     await User.updateOne(
@@ -40,8 +38,7 @@ async function toggleSubscription(subscriberId: string, channelId: string) {
     ).session(session);
 
     return {
-      success: true,
-      subscriptionStatus: "unsubscribed",
+      subscriptionStatus: "Unsubscribed",
     };
   });
 }
